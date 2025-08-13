@@ -1,0 +1,426 @@
+.add-review-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.add-review-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.add-review-modal-header {
+  padding: 24px 24px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #717171;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #F0F0F0;
+  color: #222;
+}
+
+.car-info-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #F0F0F0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: #FAFAFA;
+}
+
+.car-image-small {
+  width: 80px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #F0F0F0;
+}
+
+.car-details h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 4px 0;
+}
+
+.car-details p {
+  font-size: 0.875rem;
+  color: #717171;
+  margin: 0;
+}
+
+.review-form {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 4px;
+}
+
+.rating-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stars-input {
+  display: flex;
+  gap: 4px;
+}
+
+.star-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #D1D5DB;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.star-button:hover {
+  transform: scale(1.1);
+}
+
+.star-button.filled {
+  color: #fbbf24;
+}
+
+.rating-text {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #fbbf24;
+  margin-left: 8px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  padding: 12px 16px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: #222;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #FF5A5F;
+  box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+}
+
+.form-hint {
+  font-size: 0.8125rem;
+  color: #717171;
+  font-style: italic;
+}
+
+.review-guidelines {
+  background: #F8F9FA;
+  border: 1px solid #E9ECEF;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.review-guidelines h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 12px 0;
+}
+
+.review-guidelines ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.review-guidelines li {
+  font-size: 0.8125rem;
+  color: #374151;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #F0F0F0;
+  margin-top: auto;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.btn-cancel {
+  background: #F3F4F6;
+  color: #374151;
+  border: 2px solid #E5E7EB;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+.btn-submit {
+  background: #FF5A5F;
+  color: white;
+  border: 2px solid transparent;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #E54348;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 90, 95, 0.3);
+}
+
+.btn-submit:disabled {
+  background: #D1D5DB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .add-review-modal-overlay {
+    padding: 16px;
+  }
+  
+  .add-review-modal {
+    max-height: 95vh;
+  }
+  
+  .add-review-modal-header {
+    padding: 20px 20px 0 20px;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .car-info-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .car-image-small {
+    width: 60px;
+    height: 45px;
+  }
+  
+  .review-form {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .stars-input {
+    justify-content: center;
+  }
+  
+  .star-button {
+    font-size: 1.75rem;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .form-input,
+  .form-textarea,
+  .form-select {
+    border-width: 3px;
+  }
+  
+  .btn-submit {
+    border: 3px solid #000;
+  }
+  
+  .btn-cancel {
+    border: 3px solid #000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .star-button,
+  .btn-submit,
+  .btn-cancel,
+  .close-button {
+    transition: none;
+  }
+  
+  .star-button:hover {
+    transform: none;
+  }
+  
+  .btn-submit:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .add-review-modal {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .car-info-header {
+    background: #374151;
+    border-color: #4b5563;
+  }
+  
+  .modal-title,
+  .form-label,
+  .car-details h3 {
+    color: #f9fafb;
+  }
+  
+  .close-button {
+    color: #d1d5db;
+  }
+  
+  .close-button:hover {
+    background: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .form-input,
+  .form-textarea,
+  .form-select {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
+    border-color: #FF5A5F;
+  }
+  
+  .review-guidelines {
+    background: #374151;
+    border-color: #4b5563;
+  }
+  
+  .review-guidelines h4 {
+    color: #f9fafb;
+  }
+  
+  .review-guidelines li {
+    color: #d1d5db;
+  }
+  
+  .form-actions {
+    border-color: #4b5563;
+  }
+  
+  .btn-cancel {
+    background: #4b5563;
+    color: #f9fafb;
+    border-color: #6b7280;
+  }
+  
+  .btn-cancel:hover:not(:disabled) {
+    background: #6b7280;
+    border-color: #9ca3af;
+  }
+}

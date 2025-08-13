@@ -1,0 +1,70 @@
+.cars-page {
+  padding-top: 70px;
+}
+
+/* Hero Section */
+.cars-hero {
+  background: var(--gradient-primary);
+  color: white;
+  padding: var(--spacing-2xl) 0;
+  text-align: center;
+}
+
+.cars-hero-content h1 {
+  color: white;
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.cars-hero-content p {
+  font-size: 1.125rem;
+  opacity: 0.95;
+}
+
+/* Car Benefits */
+.car-benefits {
+  background: var(--neutral-50);
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.benefit-item {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.benefit-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.benefit-item h3 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--neutral-900);
+  font-size: 1rem;
+}
+
+.benefit-item p {
+  color: var(--neutral-600);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .cars-hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+}
