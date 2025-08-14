@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import NotificationCenter from './NotificationCenter'
 import './Navigation.css'
 
 const Navigation = ({ onOpenAuth }) => {
@@ -49,6 +50,7 @@ const Navigation = ({ onOpenAuth }) => {
                 <span className="user-greeting">
                   Hi, {user.name}! {isAdmin && <span className="admin-badge">Admin</span>}
                 </span>
+                <NotificationCenter />
                 <button className="btn-secondary" onClick={handleDashboard}>
                   {isAdmin ? '🛡️ Admin Panel' : 'My Dashboard'}
                 </button>

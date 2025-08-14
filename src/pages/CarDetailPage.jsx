@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { cars, touristDestinations } from '../data/cars'
 import AddReviewModal from '../components/AddReviewModal'
+import SupportChatButton from '../components/SupportChatButton'
 import './CarDetailPage.css'
 
 const CarDetailPage = ({ onBookCar }) => {
@@ -535,6 +536,12 @@ const CarDetailPage = ({ onBookCar }) => {
         isOpen={isAddReviewModalOpen}
         onClose={() => setIsAddReviewModalOpen(false)}
         onSubmitReview={handleSubmitReview}
+      />
+
+      {/* Support Chat Button */}
+      <SupportChatButton
+        carId={car.id}
+        carName={`${car.year} ${car.make} ${car.model}`}
       />
     </div>
   )

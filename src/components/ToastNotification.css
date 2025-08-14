@@ -1,0 +1,278 @@
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.toast-item {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  margin-bottom: 12px;
+  overflow: hidden;
+  animation: slideInToast 0.3s ease-out;
+  pointer-events: all;
+  position: relative;
+  border-left: 4px solid;
+}
+
+@keyframes slideInToast {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Toast type colors */
+.toast-success {
+  border-left-color: #4caf50;
+}
+
+.toast-error {
+  border-left-color: #f44336;
+}
+
+.toast-warning {
+  border-left-color: #ff9800;
+}
+
+.toast-info {
+  border-left-color: #2196f3;
+}
+
+.toast-booking {
+  border-left-color: #667eea;
+}
+
+.toast-payment {
+  border-left-color: #4caf50;
+}
+
+.toast-message {
+  border-left-color: #9c27b0;
+}
+
+.toast-reminder {
+  border-left-color: #ff9800;
+}
+
+.toast-content {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.toast-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.toast-action {
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.toast-action:hover {
+  background: #5a6fd8;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.toast-close:hover {
+  color: #666;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.3;
+  animation: toastProgress linear;
+  transform-origin: left;
+}
+
+@keyframes toastProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .toast-container {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+  
+  .toast-content {
+    padding: 14px;
+    gap: 10px;
+  }
+  
+  .toast-icon {
+    font-size: 18px;
+  }
+  
+  .toast-title {
+    font-size: 13px;
+  }
+  
+  .toast-message {
+    font-size: 12px;
+  }
+  
+  .toast-action {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .toast-item {
+    border: 2px solid;
+    border-left-width: 6px;
+  }
+  
+  .toast-success {
+    border-color: #4caf50;
+  }
+  
+  .toast-error {
+    border-color: #f44336;
+  }
+  
+  .toast-warning {
+    border-color: #ff9800;
+  }
+  
+  .toast-info {
+    border-color: #2196f3;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .toast-item {
+    animation: none;
+  }
+  
+  .toast-progress {
+    animation: none;
+    display: none;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .toast-item {
+    background: #2d2d2d;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .toast-title {
+    color: #fff;
+  }
+  
+  .toast-message {
+    color: #ccc;
+  }
+  
+  .toast-close {
+    color: #999;
+  }
+  
+  .toast-close:hover {
+    color: #fff;
+  }
+}
+
+/* Multiple toasts stacking animation */
+.toast-item:nth-child(n+4) {
+  opacity: 0.8;
+  transform: scale(0.95);
+  margin-top: -8px;
+}
+
+.toast-item:nth-child(n+5) {
+  opacity: 0.6;
+  transform: scale(0.9);
+  margin-top: -12px;
+}
+
+.toast-item:nth-child(n+6) {
+  display: none;
+}
+
+/* Focus styles for accessibility */
+.toast-action:focus,
+.toast-close:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 1px;
+}
+
+/* Print styles */
+@media print {
+  .toast-container {
+    display: none;
+  }
+}

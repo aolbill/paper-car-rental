@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { NotificationProvider } from './context/NotificationContext'
 import Navigation from './components/Navigation'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
@@ -11,6 +12,7 @@ import UserDashboard from './pages/UserDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import AuthModal from './components/AuthModal'
 import BookingModal from './components/BookingModal'
+import ToastNotification from './components/ToastNotification'
 import Footer from './components/Footer'
 import './App.css'
 
@@ -32,9 +34,10 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router>
-        <div className="app">
-          <Navigation onOpenAuth={openAuthModal} />
+      <NotificationProvider>
+        <Router>
+          <div className="app">
+            <Navigation onOpenAuth={openAuthModal} />
           
           <main>
             <Routes>
@@ -61,8 +64,11 @@ function App() {
             onClose={() => setBookingModalOpen(false)}
             car={selectedCar}
           />
+
+          <ToastNotification />
         </div>
       </Router>
+      </NotificationProvider>
     </AuthProvider>
   )
 }
