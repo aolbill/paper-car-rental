@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/FirebaseAuthContext'
 import NotificationCenter from './NotificationCenter'
 import './Navigation.css'
 
 const Navigation = ({ onOpenAuth }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, logout, isAuthenticated, isAdmin } = useAuth()
+  const { user, userProfile, logout, isAuthenticated, isAdmin } = useAuth()
   const navigate = useNavigate()
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
@@ -22,7 +22,7 @@ const Navigation = ({ onOpenAuth }) => {
   }
 
   const handleDashboard = () => {
-    if (isAdmin) {
+    if (isAdmin()) {
       navigate('/admin')
     } else {
       navigate('/dashboard')
@@ -48,11 +48,11 @@ const Navigation = ({ onOpenAuth }) => {
             {isAuthenticated ? (
               <div className="user-menu">
                 <span className="user-greeting">
-                  Hi, {user.name}! {isAdmin && <span className="admin-badge">Admin</span>}
+                  Hi, {userProfile?.name || user?.displayName || 'User'}! {isAdmin() && <span className="admin-badge">Admin</span>}
                 </span>
                 <NotificationCenter />
                 <button className="btn-secondary" onClick={handleDashboard}>
-                  {isAdmin ? '🛡️ Admin Panel' : 'My Dashboard'}
+                  {isAdmin() ? '🛡️ Admin Panel' : 'My Dashboard'}
                 </button>
                 <button className="btn-primary" onClick={() => handleAuthAction('logout')}>
                   Logout

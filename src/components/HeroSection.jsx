@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { locations } from '../data/cars'
+import LocationPicker from './LocationPicker'
 import './HeroSection.css'
 
 const HeroSection = () => {
@@ -8,6 +9,8 @@ const HeroSection = () => {
   const [searchData, setSearchData] = useState({
     pickupLocation: '',
     dropoffLocation: '',
+    pickupLocationData: null,
+    dropoffLocationData: null,
     pickupDate: '',
     dropoffDate: '',
     carType: 'all'
@@ -17,6 +20,22 @@ const HeroSection = () => {
     setSearchData({
       ...searchData,
       [e.target.name]: e.target.value
+    })
+  }
+
+  const handlePickupLocationSelect = (locationData) => {
+    setSearchData({
+      ...searchData,
+      pickupLocation: locationData.address,
+      pickupLocationData: locationData
+    })
+  }
+
+  const handleDropoffLocationSelect = (locationData) => {
+    setSearchData({
+      ...searchData,
+      dropoffLocation: locationData.address,
+      dropoffLocationData: locationData
     })
   }
 
@@ -52,34 +71,22 @@ const HeroSection = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="pickupLocation">Pickup Location</label>
-                  <select
-                    id="pickupLocation"
-                    name="pickupLocation"
-                    value={searchData.pickupLocation}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select pickup location</option>
-                    {locations.map((location, index) => (
-                      <option key={index} value={location}>{location}</option>
-                    ))}
-                  </select>
+                  <LocationPicker
+                    onLocationSelect={handlePickupLocationSelect}
+                    placeholder="Search for pickup location"
+                    initialValue={searchData.pickupLocation}
+                    className="compact"
+                  />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="dropoffLocation">Dropoff Location</label>
-                  <select
-                    id="dropoffLocation"
-                    name="dropoffLocation"
-                    value={searchData.dropoffLocation}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select dropoff location</option>
-                    {locations.map((location, index) => (
-                      <option key={index} value={location}>{location}</option>
-                    ))}
-                  </select>
+                  <LocationPicker
+                    onLocationSelect={handleDropoffLocationSelect}
+                    placeholder="Search for dropoff location"
+                    initialValue={searchData.dropoffLocation}
+                    className="compact"
+                  />
                 </div>
               </div>
 

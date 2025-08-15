@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // These would typically come from environment variables
 // For demo purposes, using placeholder values
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'your-project-url'
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'your-anon-key'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key-here'
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
 

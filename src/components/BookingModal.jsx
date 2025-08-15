@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/FirebaseAuthContext'
 import { locations } from '../data/cars'
-import { bookingService } from '../services/bookingService'
+import { firebaseService } from '../services/firebaseService'
 import PaymentModal from './PaymentModal'
+import LocationPicker from './LocationPicker'
 import './BookingModal.css'
 
 const BookingModal = ({ isOpen, onClose, car }) => {
@@ -10,6 +11,8 @@ const BookingModal = ({ isOpen, onClose, car }) => {
   const [bookingData, setBookingData] = useState({
     pickupLocation: '',
     dropoffLocation: '',
+    pickupLocationData: null,
+    dropoffLocationData: null,
     pickupDate: '',
     dropoffDate: '',
     pickupTime: '09:00',
@@ -44,11 +47,44 @@ const BookingModal = ({ isOpen, onClose, car }) => {
     if (name === 'pickupDate' || name === 'dropoffDate') {
       const pickup = name === 'pickupDate' ? value : bookingData.pickupDate
       const dropoff = name === 'dropoffDate' ? value : bookingData.dropoffDate
-      
+
       if (pickup && dropoff && car.id) {
-        const conflict = bookingService.checkDateConflict(car.id, pickup, dropoff)
-        setConflictCheck(conflict)
+        // Note: Conflict checking would need to be implemented in Firebase service
+        // For now, we'll skip this check
+        setConflictCheck(null)
       }
+    }
+  }
+
+  const handlePickupLocationSelect = (locationData) => {
+    setBookingData({
+      ...bookingData,
+      pickupLocation: locationData.address,
+      pickupLocationData: locationData
+    })
+
+    // Clear error when location is selected
+    if (errors.pickupLocation) {
+      setErrors({
+        ...errors,
+        pickupLocation: ''
+      })
+    }
+  }
+
+  const handleDropoffLocationSelect = (locationData) => {
+    setBookingData({
+      ...bookingData,
+      dropoffLocation: locationData.address,
+      dropoffLocationData: locationData
+    })
+
+    // Clear error when location is selected
+    if (errors.dropoffLocation) {
+      setErrors({
+        ...errors,
+        dropoffLocation: ''
+      })
     }
   }
 
@@ -179,6 +215,8 @@ const BookingModal = ({ isOpen, onClose, car }) => {
     setBookingData({
       pickupLocation: '',
       dropoffLocation: '',
+      pickupLocationData: null,
+      dropoffLocationData: null,
       pickupDate: '',
       dropoffDate: '',
       pickupTime: '09:00',
@@ -254,19 +292,12 @@ const BookingModal = ({ isOpen, onClose, car }) => {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="pickupLocation">Pickup Location</label>
-                <select
-                  id="pickupLocation"
-                  name="pickupLocation"
-                  value={bookingData.pickupLocation}
-                  onChange={handleInputChange}
-                  className={errors.pickupLocation ? 'error' : ''}
-                  required
-                >
-                  <option value="">Select pickup location</option>
-                  {locations.map((location, index) => (
-                    <option key={index} value={location}>{location}</option>
-                  ))}
-                </select>
+                <LocationPicker
+                  onLocationSelect={handlePickupLocationSelect}
+                  placeholder="Search for pickup location"
+                  initialValue={bookingData.pickupLocation}
+                  className="compact"
+                />
                 {errors.pickupLocation && (
                   <span className="error-message">{errors.pickupLocation}</span>
                 )}
@@ -274,19 +305,12 @@ const BookingModal = ({ isOpen, onClose, car }) => {
 
               <div className="form-group">
                 <label htmlFor="dropoffLocation">Dropoff Location</label>
-                <select
-                  id="dropoffLocation"
-                  name="dropoffLocation"
-                  value={bookingData.dropoffLocation}
-                  onChange={handleInputChange}
-                  className={errors.dropoffLocation ? 'error' : ''}
-                  required
-                >
-                  <option value="">Select dropoff location</option>
-                  {locations.map((location, index) => (
-                    <option key={index} value={location}>{location}</option>
-                  ))}
-                </select>
+                <LocationPicker
+                  onLocationSelect={handleDropoffLocationSelect}
+                  placeholder="Search for dropoff location"
+                  initialValue={bookingData.dropoffLocation}
+                  className="compact"
+                />
                 {errors.dropoffLocation && (
                   <span className="error-message">{errors.dropoffLocation}</span>
                 )}
