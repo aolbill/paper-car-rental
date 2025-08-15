@@ -11,10 +11,10 @@ class EmailService {
 
   detectProvider() {
     // Check environment variables to determine which email service to use
-    if (process.env.REACT_APP_SENDGRID_API_KEY) return 'sendgrid'
-    if (process.env.REACT_APP_AWS_ACCESS_KEY_ID) return 'aws-ses'
-    if (process.env.REACT_APP_RESEND_API_KEY) return 'resend'
-    if (process.env.REACT_APP_EMAILJS_SERVICE_ID) return 'emailjs'
+    if (import.meta.env.VITE_SENDGRID_API_KEY) return 'sendgrid'
+    if (import.meta.env.VITE_AWS_ACCESS_KEY_ID) return 'aws-ses'
+    if (import.meta.env.VITE_RESEND_API_KEY) return 'resend'
+    if (import.meta.env.VITE_EMAILJS_SERVICE_ID) return 'emailjs'
     return 'mock' // Fallback to mock/console logging
   }
 
@@ -47,7 +47,7 @@ class EmailService {
   async initSendGrid() {
     // SendGrid initialization would go here
     // For now, just check if API key exists
-    if (process.env.REACT_APP_SENDGRID_API_KEY) {
+    if (import.meta.env.VITE_SENDGRID_API_KEY) {
       console.log('📧 SendGrid email service initialized')
       this.isConfigured = true
     }
@@ -67,7 +67,7 @@ class EmailService {
 
   async initEmailJS() {
     // EmailJS initialization (client-side email service)
-    if (process.env.REACT_APP_EMAILJS_SERVICE_ID) {
+    if (import.meta.env.VITE_EMAILJS_SERVICE_ID) {
       console.log('📧 EmailJS email service initialized')
       this.isConfigured = true
     }
