@@ -250,6 +250,12 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is admin
   const isAdmin = () => {
+    // Check userProfile first (from Firestore)
+    if (userProfile && userProfile.role === 'admin') {
+      return true
+    }
+
+    // Fallback to email check for initial admins
     const adminEmails = ['admin@papercarrental.com', 'manager@papercarrental.com']
     return user && adminEmails.includes(user.email)
   }
