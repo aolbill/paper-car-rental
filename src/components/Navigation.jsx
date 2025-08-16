@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/FirebaseAuthContext'
-import NotificationCenter from './NotificationCenter'
+import NotificationCenterSimple from './NotificationCenterSimple'
 import './Navigation.css'
 
 const Navigation = ({ onOpenAuth }) => {
@@ -50,7 +50,7 @@ const Navigation = ({ onOpenAuth }) => {
                 <span className="user-greeting">
                   Hi, {userProfile?.name || user?.displayName || 'User'}! {isAdmin() && <span className="admin-badge">Admin</span>}
                 </span>
-                <NotificationCenter />
+                <NotificationCenterSimple />
                 <button className="btn-secondary" onClick={handleDashboard}>
                   {isAdmin() ? '🛡️ Admin Panel' : 'My Dashboard'}
                 </button>
