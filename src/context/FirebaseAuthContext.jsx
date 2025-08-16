@@ -322,6 +322,19 @@ export const AuthProvider = ({ children }) => {
     return result
   }
 
+  // Helper function to get user object for RBAC
+  const getUserForRBAC = () => {
+    if (!user || !userProfile) return null
+
+    return {
+      id: user.uid,
+      email: user.email,
+      role: userProfile.role || rbacService.determineUserRole(user.email),
+      permissions: userProfile.permissions || [],
+      status: userProfile.status || 'active'
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -338,8 +351,35 @@ export const AuthProvider = ({ children }) => {
     removeFromFavorites,
     updateUserPreferences,
     isAdmin,
+    // RBAC helper methods
+    getUserForRBAC,
+    hasPermission: (permission) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasPermission(rbacUser, permission) : false
+    },
+    hasAnyPermission: (permissions) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasAnyPermission(rbacUser, permissions) : false
+    },
+    hasAllPermissions: (permissions) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasAllPermissions(rbacUser, permissions) : false
+    },
+    hasRoleLevel: (role) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasRoleLevel(rbacUser, role) : false
+    },
+    canAccessRoute: (route) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.canAccessRoute(rbacUser, route) : false
+    },
+    getUserPermissions: () => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.getUserPermissions(rbacUser) : []
+    },
     // User service methods for direct access
-    userService: firebaseUserService
+    userService: firebaseUserService,
+    rbacService
   }
 
   return (
