@@ -1,7 +1,10 @@
 /* Modern Car Listing - Turo/Airbnb Style */
 .car-listing-section {
-  background: var(--neutral-0);
+  background: var(--paper-white);
   padding: var(--space-12) 0;
+  position: relative;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out 0.2s forwards;
 }
 
 /* Header */
@@ -16,15 +19,16 @@
 
 .header-content h2 {
   font-size: var(--text-4xl);
-  font-weight: var(--font-bold);
-  color: var(--neutral-900);
+  font-weight: 800;
+  color: var(--paper-black);
   margin-bottom: var(--space-3);
   line-height: var(--leading-tight);
+  letter-spacing: -1px;
 }
 
 .header-content p {
   font-size: var(--text-lg);
-  color: var(--neutral-600);
+  color: var(--paper-gray);
   line-height: var(--leading-relaxed);
 }
 
@@ -150,11 +154,11 @@
 }
 
 .category-pill.active {
-  background: var(--neutral-900);
-  border-color: var(--neutral-900);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: var(--paper-black);
+  border-color: var(--paper-black);
+  color: var(--paper-white);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .category-pill .count {
@@ -223,7 +227,7 @@
 }
 
 .toggle-filter input[type="checkbox"]:checked + .toggle-slider {
-  background: var(--neutral-900);
+  background: var(--paper-black);
 }
 
 .toggle-filter input[type="checkbox"]:checked + .toggle-slider::before {
