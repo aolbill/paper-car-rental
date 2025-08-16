@@ -10,13 +10,16 @@ class MessagingService {
 
   async init() {
     // Check if Supabase is properly configured
+    if (!supabase) {
+      console.warn('📨 Messaging service using mock mode: Supabase not configured')
+      this.isConnected = false
+      return
+    }
+
     try {
-      if (!supabase) {
-        throw new Error('Supabase not configured')
-      }
       const { data } = await supabase.auth.getSession()
       this.isConnected = true
-      console.log('📨 Messaging service initialized')
+      console.log('📨 Messaging service initialized with Supabase')
     } catch (error) {
       console.warn('📨 Messaging service using mock mode:', error.message)
       this.isConnected = false
