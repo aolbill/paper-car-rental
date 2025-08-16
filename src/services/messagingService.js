@@ -26,7 +26,7 @@ class MessagingService {
   // Create or get existing conversation
   async createConversation(userId, carId, carName, subject = null) {
     try {
-      if (this.isConnected) {
+      if (this.isConnected && supabase) {
         // Check for existing conversation
         const { data: existing } = await supabase
           .from('conversations')
