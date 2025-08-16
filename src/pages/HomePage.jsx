@@ -16,7 +16,7 @@ const HomePage = ({ onBookCar }) => {
             <p>Experience sophisticated mobility solutions designed for the modern traveler</p>
           </div>
           
-          <div className="features-grid">
+          <div className="features-grid stagger-animation">
             <div className="feature-card">
               <div className="feature-icon">🚗</div>
               <h3>Premium Fleet</h3>
