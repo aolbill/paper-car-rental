@@ -1,28 +1,32 @@
 :root {
-  /* Kenyan Flag & Cultural Colors */
-  --primary-red: #CE1126;
-  --primary-black: #000000;
-  --primary-green: #006A4E;
-  --primary-white: #FFFFFF;
+  /* Paper Car Rental - Black & White Theme */
+  --paper-black: #0A0A0A;
+  --paper-charcoal: #1A1A1A;
+  --paper-dark-gray: #2A2A2A;
+  --paper-gray: #4A4A4A;
+  --paper-light-gray: #8A8A8A;
+  --paper-off-white: #F8F8F8;
+  --paper-white: #FFFFFF;
 
-  /* Modern Brand Colors - Turo/Airbnb inspired */
-  --brand-primary: #FF385C;
-  --brand-secondary: #00A699;
-  --brand-dark: #222222;
-  --brand-gray: #717171;
+  /* Primary Brand Colors */
+  --brand-primary: var(--paper-black);
+  --brand-secondary: var(--paper-charcoal);
+  --brand-accent: var(--paper-gray);
+  --brand-light: var(--paper-off-white);
 
   /* Text Colors for consistency */
-  --text-primary: #222222;
-  --text-secondary: #717171;
-  --text-tertiary: #9CA3AF;
-  --text-light: #FFFFFF;
-  --text-inverse: #FFFFFF;
+  --text-primary: var(--paper-black);
+  --text-secondary: var(--paper-gray);
+  --text-tertiary: var(--paper-light-gray);
+  --text-light: var(--paper-white);
+  --text-inverse: var(--paper-white);
 
   /* Background Colors */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #FAFAFA;
-  --bg-tertiary: #F5F5F5;
-  --bg-dark: #222222;
+  --bg-primary: var(--paper-white);
+  --bg-secondary: var(--paper-off-white);
+  --bg-tertiary: #F2F2F2;
+  --bg-dark: var(--paper-black);
+  --bg-section-alt: var(--paper-charcoal);
 
   /* Border Colors */
   --border-light: #F0F0F0;
@@ -262,16 +266,33 @@ button:focus-visible {
 }
 
 .btn-primary {
-  background: var(--neutral-900);
-  color: var(--neutral-0);
-  border-color: var(--neutral-900);
+  background: var(--paper-black);
+  color: var(--paper-white);
+  border-color: var(--paper-black);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--neutral-800);
-  border-color: var(--neutral-800);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: var(--paper-charcoal);
+  border-color: var(--paper-charcoal);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
 }
 
 .btn-secondary {
