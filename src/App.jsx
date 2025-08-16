@@ -60,6 +60,7 @@ function App() {
             <Route path="/test/googlemaps" element={<GoogleMapsApiDiagnostic />} />
             <Route path="/test/permissions" element={<FirebasePermissionsDiagnostic />} />
             <Route path="/test/seed" element={<FirebaseDataSeeder />} />
+            <Route path="/test/firebase" element={<FirebaseConnectionTest />} />
             <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
           </main>
