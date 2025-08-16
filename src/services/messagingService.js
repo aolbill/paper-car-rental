@@ -11,6 +11,9 @@ class MessagingService {
   async init() {
     // Check if Supabase is properly configured
     try {
+      if (!supabase) {
+        throw new Error('Supabase not configured')
+      }
       const { data } = await supabase.auth.getSession()
       this.isConnected = true
       console.log('📨 Messaging service initialized')
