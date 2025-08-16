@@ -164,6 +164,10 @@ export const AuthProvider = ({ children }) => {
 
   // Logout user
   const logout = async () => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured.' }
+    }
+
     try {
       await signOut(auth)
       setUser(null)
