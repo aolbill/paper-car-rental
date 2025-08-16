@@ -195,13 +195,16 @@
 .cta-content p {
   font-size: 1.2rem;
   margin-bottom: var(--spacing-2xl);
-  opacity: 0.95;
   max-width: 650px;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.7;
   opacity: 0;
   animation: fadeInUp 0.8s ease-out 0.4s forwards;
+  color: var(--paper-white);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  position: relative;
 }
 
 .cta-button {
