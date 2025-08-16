@@ -47,11 +47,17 @@ export const AuthProvider = ({ children }) => {
             // Update last login
             await firebaseUserService.updateLastLogin(firebaseUser.uid)
           } else {
-            // Create user profile if it doesn't exist
+            // Create user profile if it doesn't exist with proper role assignment
+            const userRole = rbacService.determineUserRole(firebaseUser.email)
+            const userPermissions = rbacService.rolePermissions[userRole] || []
+
             const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, {
               email: firebaseUser.email,
               name: firebaseUser.displayName || '',
-              profileImageUrl: firebaseUser.photoURL || ''
+              profileImageUrl: firebaseUser.photoURL || '',
+              role: userRole,
+              permissions: userPermissions,
+              status: 'active'
             })
 
             if (profileResult.success) {
