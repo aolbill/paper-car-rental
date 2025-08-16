@@ -9,7 +9,7 @@ const HomePage = ({ onBookCar }) => {
       <HeroSection />
       <CarListing onBookCar={onBookCar} />
       
-      <section className="features-section section">
+      <section className="features-section section paper-section animate-fade-in-up">
         <div className="container">
           <div className="section-header">
             <h2>Why Choose Paper Car Rental?</h2>
