@@ -242,16 +242,36 @@
 
   .hero-stats {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-lg);
+    gap: 1rem;
     margin: 3rem var(--spacing-md) 0;
+    padding: 1.5rem;
   }
 
   .stat-item {
-    padding: var(--spacing-lg);
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  .stat-content {
+    text-align: center;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
   }
 
   .stat-item h4 {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+
+  .stat-item p {
+    font-size: 0.9rem;
+  }
+
+  .stat-desc {
+    font-size: 0.75rem;
   }
 
   .hero-section::before,
