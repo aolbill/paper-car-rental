@@ -30,8 +30,17 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  // Check if Firebase is available
+  const isFirebaseAvailable = auth !== null && db !== null
+
   // Listen for authentication state changes
   useEffect(() => {
+    if (!isFirebaseAvailable) {
+      console.warn('Firebase not configured. Authentication disabled.')
+      setIsLoading(false)
+      return
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
@@ -77,6 +86,10 @@ export const AuthProvider = ({ children }) => {
 
   // Register new user
   const register = async (email, password, userData) => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured. Please set up Firebase credentials.' }
+    }
+
     setIsLoading(true)
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -119,6 +132,10 @@ export const AuthProvider = ({ children }) => {
 
   // Login user
   const login = async (email, password) => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured. Please set up Firebase credentials.' }
+    }
+
     setIsLoading(true)
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
@@ -147,6 +164,10 @@ export const AuthProvider = ({ children }) => {
 
   // Logout user
   const logout = async () => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured.' }
+    }
+
     try {
       await signOut(auth)
       setUser(null)
@@ -161,6 +182,10 @@ export const AuthProvider = ({ children }) => {
 
   // Reset password
   const resetPassword = async (email) => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured.' }
+    }
+
     try {
       await sendPasswordResetEmail(auth, email)
       return { success: true }
