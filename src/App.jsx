@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/FirebaseAuthContext'
 import { NotificationProvider } from './context/NotificationContext'
 import Navigation from './components/Navigation'
+import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import ContactPage from './pages/ContactPage'
@@ -21,6 +22,7 @@ import BookingModal from './components/BookingModal'
 import ToastNotification from './components/ToastNotification'
 import Footer from './components/Footer'
 import './App.css'
+import './components/ProtectedRoute.css'
 
 function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
