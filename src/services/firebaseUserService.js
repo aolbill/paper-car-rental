@@ -572,6 +572,136 @@ export class FirebaseUserService {
       return { success: false, error: error.message }
     }
   }
+
+  // Admin Management Methods
+
+  // Get all admin users
+  async getAllAdmins() {
+    try {
+      const usersRef = collection(db, 'users')
+      const adminQuery = query(usersRef, where('role', '==', 'admin'))
+      const querySnapshot = await getDocs(adminQuery)
+
+      const admins = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+
+      return { success: true, data: admins }
+    } catch (error) {
+      console.error('Error getting admins:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Check if user is admin
+  async isUserAdmin(userId) {
+    try {
+      const userRef = doc(db, 'users', userId)
+      const userSnap = await getDoc(userRef)
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data()
+        return {
+          success: true,
+          isAdmin: userData.role === 'admin',
+          adminLevel: userData.adminLevel || null,
+          permissions: userData.permissions || []
+        }
+      }
+
+      return { success: false, error: 'User not found' }
+    } catch (error) {
+      console.error('Error checking admin status:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Promote user to admin
+  async promoteToAdmin(userId, adminData = {}) {
+    try {
+      const userRef = doc(db, 'users', userId)
+      const updateData = {
+        role: 'admin',
+        adminLevel: adminData.adminLevel || 'admin',
+        permissions: adminData.permissions || [
+          'manage_cars',
+          'manage_bookings',
+          'view_analytics',
+          'manage_payments'
+        ],
+        promotedAt: serverTimestamp(),
+        promotedBy: adminData.promotedBy || 'system',
+        updatedAt: serverTimestamp()
+      }
+
+      await updateDoc(userRef, updateData)
+
+      // Log the promotion
+      await this.logUserActivity(userId, 'promoted_to_admin', {
+        adminLevel: updateData.adminLevel,
+        promotedBy: adminData.promotedBy
+      })
+
+      return { success: true, data: updateData }
+    } catch (error) {
+      console.error('Error promoting user to admin:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Revoke admin privileges
+  async revokeAdminPrivileges(userId, revokedBy = 'system') {
+    try {
+      const userRef = doc(db, 'users', userId)
+      const updateData = {
+        role: 'customer',
+        adminLevel: null,
+        permissions: [],
+        revokedAt: serverTimestamp(),
+        revokedBy: revokedBy,
+        updatedAt: serverTimestamp()
+      }
+
+      await updateDoc(userRef, updateData)
+
+      // Log the revocation
+      await this.logUserActivity(userId, 'admin_privileges_revoked', {
+        revokedBy: revokedBy
+      })
+
+      return { success: true, data: updateData }
+    } catch (error) {
+      console.error('Error revoking admin privileges:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Update admin permissions
+  async updateAdminPermissions(userId, permissions, updatedBy = 'system') {
+    try {
+      const userRef = doc(db, 'users', userId)
+      const updateData = {
+        permissions: permissions,
+        permissionsUpdatedAt: serverTimestamp(),
+        permissionsUpdatedBy: updatedBy,
+        updatedAt: serverTimestamp()
+      }
+
+      await updateDoc(userRef, updateData)
+
+      // Log the permission update
+      await this.logUserActivity(userId, 'admin_permissions_updated', {
+        newPermissions: permissions,
+        updatedBy: updatedBy
+      })
+
+      return { success: true, data: updateData }
+    } catch (error) {
+      console.error('Error updating admin permissions:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 // Create and export singleton instance
