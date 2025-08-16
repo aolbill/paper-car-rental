@@ -91,13 +91,26 @@ export const dbSchemas = {
 
 // Database service functions
 export const dbService = {
+  // Helper to check if Supabase is available
+  _checkSupabase() {
+    if (!supabase) {
+      throw new Error('Supabase not configured. Please use Firebase services instead.')
+    }
+    return supabase
+  },
+
   // Cars
   async getCars() {
-    const { data, error } = await supabase
-      .from('cars')
-      .select('*')
-      .eq('available', true)
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('cars')
+        .select('*')
+        .eq('available', true)
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   },
 
   async getCarById(id) {
