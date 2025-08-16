@@ -26,20 +26,36 @@ const HeroSection = () => {
 
           <div className="hero-stats">
             <div className="stat-item">
-              <h4>10,000+</h4>
-              <p>Happy Customers</p>
+              <div className="stat-icon">👥</div>
+              <div className="stat-content">
+                <h4>12,500+</h4>
+                <p>Satisfied Clients</p>
+                <span className="stat-desc">Trust our premium service</span>
+              </div>
             </div>
             <div className="stat-item">
-              <h4>200+</h4>
-              <p>Available Cars</p>
+              <div className="stat-icon">🚗</div>
+              <div className="stat-content">
+                <h4>250+</h4>
+                <p>Luxury Vehicles</p>
+                <span className="stat-desc">From economy to premium</span>
+              </div>
             </div>
             <div className="stat-item">
-              <h4>15+</h4>
-              <p>Pickup Locations</p>
+              <div className="stat-icon">📍</div>
+              <div className="stat-content">
+                <h4>20+</h4>
+                <p>Prime Locations</p>
+                <span className="stat-desc">Convenient pickup points</span>
+              </div>
             </div>
             <div className="stat-item">
-              <h4>24/7</h4>
-              <p>Customer Support</p>
+              <div className="stat-icon">💬</div>
+              <div className="stat-content">
+                <h4>24/7</h4>
+                <p>Expert Support</p>
+                <span className="stat-desc">Always here to help</span>
+              </div>
             </div>
           </div>
         </div>
