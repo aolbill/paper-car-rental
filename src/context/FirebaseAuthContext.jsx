@@ -86,6 +86,12 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, password, userData) => {
     setIsLoading(true)
     try {
+      // Validate registration data using RBAC service
+      const validationResult = rbacService.validateRegistration({ email, ...userData })
+      if (!validationResult.success) {
+        return { success: false, error: validationResult.error }
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       const firebaseUser = userCredential.user
 
@@ -96,15 +102,20 @@ export const AuthProvider = ({ children }) => {
         })
       }
 
-      // Create user profile in Firestore using service
-      const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, {
+      // Create user profile in Firestore using service with validated data
+      const profileData = {
         email: email,
         name: userData.name || '',
         phone: userData.phone || '',
         address: userData.address || {},
         preferences: userData.preferences || {},
-        emergencyContact: userData.emergencyContact || {}
-      })
+        emergencyContact: userData.emergencyContact || {},
+        role: validationResult.userData.role,
+        permissions: validationResult.userData.permissions,
+        status: validationResult.userData.status
+      }
+
+      const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, profileData)
 
       if (profileResult.success) {
         setUserProfile(profileResult.data)
