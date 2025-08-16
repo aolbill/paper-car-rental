@@ -8,8 +8,8 @@ const Footer = () => {
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
-            <h4>🚗 RentKenya</h4>
-            <p>Premium car rentals for your Kenyan adventure. From city drives to safari expeditions across beautiful Kenya.</p>
+            <h4>📄 Paper Car Rental</h4>
+            <p>Elegant mobility solutions crafted for the modern traveler. Experience sophisticated car rentals with unparalleled service and style.</p>
             <div className="social-links">
               <a href="#" aria-label="Facebook">📘</a>
               <a href="#" aria-label="Twitter">🐦</a>
@@ -42,7 +42,7 @@ const Footer = () => {
             <h4>Contact Info</h4>
             <ul>
               <li>📞 +254 700 000 000</li>
-              <li>📧 info@rentkenya.com</li>
+              <li>📧 hello@papercarrental.com</li>
               <li>📍 Westlands, Nairobi</li>
               <li>🕒 24/7 Service</li>
             </ul>
@@ -60,7 +60,7 @@ const Footer = () => {
         </div>
         
         <div className="footer-bottom">
-          <p>&copy; 2024 RentKenya. All rights reserved. | Made with ❤️ in Kenya</p>
+          <p>&copy; 2024 Paper Car Rental. All rights reserved. | Crafted with ❤️ for Modern Mobility</p>
           <div className="footer-links">
             <a href="#privacy">Privacy Policy</a>
             <a href="#terms">Terms of Service</a>
