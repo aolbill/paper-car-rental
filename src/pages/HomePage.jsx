@@ -94,11 +94,11 @@ const HomePage = ({ onBookCar }) => {
         </div>
       </section>
 
-      <section className="cta-section">
+      <section className="cta-section paper-gradient">
         <div className="container">
           <div className="cta-content">
-            <h2>Ready to Explore Kenya?</h2>
-            <p>Book your perfect rental car today and start your adventure across beautiful Kenya.</p>
+            <h2>Ready for Your Next Journey?</h2>
+            <p>Experience the elegance of modern mobility with Paper Car Rental. Discover premium vehicles crafted for your sophisticated travel needs.</p>
             <button 
               className="btn-primary cta-button"
               onClick={() => document.getElementById('cars')?.scrollIntoView({ behavior: 'smooth' })}
