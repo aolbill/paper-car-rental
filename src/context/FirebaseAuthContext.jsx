@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { 
-  signInWithEmailAndPassword, 
+import {
+  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
@@ -13,6 +13,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../lib/firebase'
 import firebaseUserService from '../services/firebaseUserService'
+import { rbacService } from '../services/rbacService'
 
 const AuthContext = createContext()
 
@@ -46,11 +47,17 @@ export const AuthProvider = ({ children }) => {
             // Update last login
             await firebaseUserService.updateLastLogin(firebaseUser.uid)
           } else {
-            // Create user profile if it doesn't exist
+            // Create user profile if it doesn't exist with proper role assignment
+            const userRole = rbacService.determineUserRole(firebaseUser.email)
+            const userPermissions = rbacService.rolePermissions[userRole] || []
+
             const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, {
               email: firebaseUser.email,
               name: firebaseUser.displayName || '',
-              profileImageUrl: firebaseUser.photoURL || ''
+              profileImageUrl: firebaseUser.photoURL || '',
+              role: userRole,
+              permissions: userPermissions,
+              status: 'active'
             })
 
             if (profileResult.success) {
@@ -79,6 +86,12 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, password, userData) => {
     setIsLoading(true)
     try {
+      // Validate registration data using RBAC service
+      const validationResult = rbacService.validateRegistration({ email, ...userData })
+      if (!validationResult.success) {
+        return { success: false, error: validationResult.error }
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       const firebaseUser = userCredential.user
 
@@ -89,15 +102,20 @@ export const AuthProvider = ({ children }) => {
         })
       }
 
-      // Create user profile in Firestore using service
-      const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, {
+      // Create user profile in Firestore using service with validated data
+      const profileData = {
         email: email,
         name: userData.name || '',
         phone: userData.phone || '',
         address: userData.address || {},
         preferences: userData.preferences || {},
-        emergencyContact: userData.emergencyContact || {}
-      })
+        emergencyContact: userData.emergencyContact || {},
+        role: validationResult.userData.role,
+        permissions: validationResult.userData.permissions,
+        status: validationResult.userData.status
+      }
+
+      const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, profileData)
 
       if (profileResult.success) {
         setUserProfile(profileResult.data)
@@ -225,8 +243,17 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is admin
   const isAdmin = () => {
-    const adminEmails = ['admin@papercarrental.com', 'manager@papercarrental.com']
-    return user && adminEmails.includes(user.email)
+    if (!user || !userProfile) return false
+
+    const userForRBAC = {
+      id: user.uid,
+      email: user.email,
+      role: userProfile.role || rbacService.determineUserRole(user.email),
+      permissions: userProfile.permissions || [],
+      status: userProfile.status || 'active'
+    }
+
+    return rbacService.hasRoleLevel(userForRBAC, 'admin')
   }
 
   // Delete user account
@@ -295,6 +322,19 @@ export const AuthProvider = ({ children }) => {
     return result
   }
 
+  // Helper function to get user object for RBAC
+  const getUserForRBAC = () => {
+    if (!user || !userProfile) return null
+
+    return {
+      id: user.uid,
+      email: user.email,
+      role: userProfile.role || rbacService.determineUserRole(user.email),
+      permissions: userProfile.permissions || [],
+      status: userProfile.status || 'active'
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -311,8 +351,35 @@ export const AuthProvider = ({ children }) => {
     removeFromFavorites,
     updateUserPreferences,
     isAdmin,
+    // RBAC helper methods
+    getUserForRBAC,
+    hasPermission: (permission) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasPermission(rbacUser, permission) : false
+    },
+    hasAnyPermission: (permissions) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasAnyPermission(rbacUser, permissions) : false
+    },
+    hasAllPermissions: (permissions) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasAllPermissions(rbacUser, permissions) : false
+    },
+    hasRoleLevel: (role) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.hasRoleLevel(rbacUser, role) : false
+    },
+    canAccessRoute: (route) => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.canAccessRoute(rbacUser, route) : false
+    },
+    getUserPermissions: () => {
+      const rbacUser = getUserForRBAC()
+      return rbacUser ? rbacService.getUserPermissions(rbacUser) : []
+    },
     // User service methods for direct access
-    userService: firebaseUserService
+    userService: firebaseUserService,
+    rbacService
   }
 
   return (
