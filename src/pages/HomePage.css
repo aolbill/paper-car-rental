@@ -154,12 +154,15 @@
 
 /* CTA Section */
 .cta-section {
-  background: var(--paper-gradient);
+  background: linear-gradient(135deg, var(--paper-black) 0%, var(--paper-charcoal) 50%, var(--paper-dark-gray) 100%);
   color: var(--paper-white);
   text-align: center;
   padding: var(--spacing-3xl) 0;
   position: relative;
   overflow: hidden;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
 }
 
 .cta-section::before {
