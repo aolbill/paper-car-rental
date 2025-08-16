@@ -114,60 +114,90 @@ export const dbService = {
   },
 
   async getCarById(id) {
-    const { data, error } = await supabase
-      .from('cars')
-      .select('*')
-      .eq('id', id)
-      .single()
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('cars')
+        .select('*')
+        .eq('id', id)
+        .single()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   },
 
   // Bookings
   async createBooking(bookingData) {
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert([bookingData])
-      .select()
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('bookings')
+        .insert([bookingData])
+        .select()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   },
 
   async getUserBookings(userId) {
-    const { data, error } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        cars(name, image, category)
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('bookings')
+        .select(`
+          *,
+          cars(name, image, category)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   },
 
   // Locations
   async getLocations() {
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('active', true)
-      .order('city', { ascending: true })
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('locations')
+        .select('*')
+        .eq('active', true)
+        .order('city', { ascending: true })
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   },
 
   // Users
   async createUser(userData) {
-    const { data, error } = await supabase
-      .from('users')
-      .insert([userData])
-      .select()
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('users')
+        .insert([userData])
+        .select()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   },
 
   async getUserByEmail(email) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single()
-    return { data, error }
+    try {
+      const client = this._checkSupabase()
+      const { data, error } = await client
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error.message }
+    }
   }
 }
