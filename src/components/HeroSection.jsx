@@ -8,9 +8,9 @@ const HeroSection = () => {
     <section className="hero-section">
       <div className="hero-background">
         <div className="hero-overlay"></div>
-        <img 
-          src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&h=600&fit=crop" 
-          alt="Nairobi skyline"
+        <img
+          src="https://cdn.builder.io/api/v1/image/assets%2Feb6f3caef3d640188fd8703f9f5a1dd6%2Feeb4575b4b254b2fa370eafdb5be0fe5?format=webp&width=1200"
+          alt="Luxury car silhouette"
           className="hero-bg-image"
         />
       </div>
