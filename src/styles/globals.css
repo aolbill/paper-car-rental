@@ -155,9 +155,13 @@
   --spacing-xl: var(--space-8);
   --spacing-2xl: var(--space-12);
   --spacing-3xl: var(--space-16);
-  
+
   --accent-blue: var(--info);
   --accent-orange: var(--warning);
+
+  /* Gradient fallbacks */
+  --gradient-primary: linear-gradient(135deg, #FF385C 0%, #FF6B6B 100%);
+  --gradient-hero: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
 /* Reset and Base Styles */
