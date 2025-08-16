@@ -1,500 +1,423 @@
-// Payment service for handling various payment methods
-// In production, this would integrate with real payment gateways
-
-// Mock payment transactions database
-let mockPayments = []
-
-// Kenyan banks for bank transfer options
-export const kenyanBanks = [
-  { code: 'equity', name: 'Equity Bank Kenya Limited' },
-  { code: 'kcb', name: 'Kenya Commercial Bank (KCB)' },
-  { code: 'cooperative', name: 'Co-operative Bank of Kenya' },
-  { code: 'absa', name: 'Absa Bank Kenya PLC' },
-  { code: 'stanbic', name: 'Stanbic Bank Kenya Limited' },
-  { code: 'ncba', name: 'NCBA Bank Kenya PLC' },
-  { code: 'dtb', name: 'Diamond Trust Bank Kenya Limited' },
-  { code: 'familybank', name: 'Family Bank Limited' },
-  { code: 'iban', name: 'I&M Bank Limited' },
-  { code: 'gureysbank', name: 'Guaranty Trust Bank Kenya Limited' }
-]
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  getDoc, 
+  updateDoc, 
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  serverTimestamp 
+} from 'firebase/firestore'
+import { db } from '../lib/firebase'
 
 class PaymentService {
   constructor() {
-    this.apiBaseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://api.yourcarrental.com' 
-      : 'http://localhost:3001'
+    this.listeners = new Map()
   }
 
-  // Process payment based on method
-  async processPayment(paymentData) {
-    const { paymentMethod, amount, currency, bookingId } = paymentData
+  // Cleanup listeners
+  cleanup() {
+    this.listeners.forEach(unsubscribe => unsubscribe())
+    this.listeners.clear()
+  }
 
+  // MPESA Payment Integration
+  async initiateMpesaPayment(paymentData) {
     try {
-      // Simulate API call delay
-      await this.delay(2000)
+      const { bookingId, amount, phoneNumber, accountReference, transactionDesc } = paymentData
+      
+      // Create payment record in Firestore
+      const paymentRecord = {
+        bookingId,
+        amount,
+        phoneNumber: this.formatMpesaPhoneNumber(phoneNumber),
+        accountReference: accountReference || bookingId,
+        transactionDesc: transactionDesc || `Car rental payment for booking ${bookingId}`,
+        paymentMethod: 'mpesa',
+        status: 'pending',
+        provider: 'mpesa',
+        currency: 'KSH',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
 
-      // Route to appropriate payment processor
-      switch (paymentMethod) {
-        case 'mpesa':
-          return await this.processMpesaPayment(paymentData)
-        case 'card':
-          return await this.processCardPayment(paymentData)
-        case 'bank':
-          return await this.processBankTransfer(paymentData)
-        default:
-          throw new Error('Unsupported payment method')
+      const paymentsRef = collection(db, 'payments')
+      const docRef = await addDoc(paymentsRef, paymentRecord)
+      
+      // In a real implementation, you would call MPESA API here
+      // For now, we'll simulate the STK push
+      const mpesaResponse = await this.simulateMpesaSTKPush({
+        ...paymentRecord,
+        paymentId: docRef.id
+      })
+
+      // Update payment record with MPESA response
+      await updateDoc(docRef, {
+        mpesaCheckoutRequestId: mpesaResponse.CheckoutRequestID,
+        mpesaMerchantRequestId: mpesaResponse.MerchantRequestID,
+        mpesaResponseCode: mpesaResponse.ResponseCode,
+        mpesaResponseDescription: mpesaResponse.ResponseDescription,
+        updatedAt: serverTimestamp()
+      })
+
+      return {
+        success: true,
+        data: {
+          paymentId: docRef.id,
+          checkoutRequestId: mpesaResponse.CheckoutRequestID,
+          merchantRequestId: mpesaResponse.MerchantRequestID,
+          message: 'STK push sent to your phone. Please complete the payment.'
+        }
       }
     } catch (error) {
-      console.error('Payment processing error:', error)
-      return {
-        success: false,
-        error: error.message || 'Payment processing failed'
-      }
+      console.error('Error initiating MPESA payment:', error)
+      return { success: false, error: error.message }
     }
   }
 
-  // M-Pesa payment processing (Safaricom STK Push simulation)
-  async processMpesaPayment(paymentData) {
-    const { amount, paymentData: { mpesaNumber }, booking, customer } = paymentData
-
-    // Validate M-Pesa number format
-    const cleanNumber = mpesaNumber.replace(/\s/g, '')
-    if (!/^(254|0)(7|1)\d{8}$/.test(cleanNumber)) {
-      throw new Error('Invalid M-Pesa number format')
-    }
-
-    // Simulate M-Pesa STK Push
-    const mpesaResponse = await this.simulateMpesaSTKPush({
-      phoneNumber: cleanNumber,
-      amount,
-      reference: `CAR-${booking.id}`,
-      description: `Car rental payment for ${booking.carName}`
-    })
-
-    if (mpesaResponse.success) {
-      // Record successful payment
-      const payment = this.recordPayment({
-        ...paymentData,
-        transactionId: mpesaResponse.transactionId,
-        providerResponse: mpesaResponse,
-        status: 'completed'
-      })
-
-      // Update booking status to confirmed and paid
-      await this.updateBookingPaymentStatus(booking.id, 'confirmed_paid', payment.id)
-
-      return {
-        success: true,
-        transactionId: mpesaResponse.transactionId,
-        message: 'M-Pesa payment completed successfully',
-        payment,
-        receiptNumber: mpesaResponse.receiptNumber
-      }
-    } else {
-      throw new Error(mpesaResponse.error || 'M-Pesa payment failed')
-    }
-  }
-
-  // Card payment processing (Stripe/Paystack simulation)
-  async processCardPayment(paymentData) {
-    const { amount, paymentData: cardData, booking } = paymentData
-
-    // Validate card details
-    this.validateCardDetails(cardData)
-
-    // Simulate card processing
-    const cardResponse = await this.simulateCardProcessing({
-      cardNumber: cardData.cardNumber.replace(/\s/g, ''),
-      expiryDate: cardData.expiryDate,
-      cvv: cardData.cvv,
-      cardName: cardData.cardName,
-      amount,
-      currency: 'KES',
-      reference: `CAR-${booking.id}`
-    })
-
-    if (cardResponse.success) {
-      const payment = this.recordPayment({
-        ...paymentData,
-        transactionId: cardResponse.transactionId,
-        providerResponse: cardResponse,
-        status: 'completed'
-      })
-
-      await this.updateBookingPaymentStatus(booking.id, 'confirmed_paid', payment.id)
-
-      return {
-        success: true,
-        transactionId: cardResponse.transactionId,
-        message: 'Card payment completed successfully',
-        payment,
-        last4: cardData.cardNumber.slice(-4)
-      }
-    } else {
-      throw new Error(cardResponse.error || 'Card payment failed')
-    }
-  }
-
-  // Bank transfer processing
-  async processBankTransfer(paymentData) {
-    const { amount, paymentData: bankData, booking } = paymentData
-
-    // Validate bank details
-    if (!bankData.bankCode || !bankData.bankAccount) {
-      throw new Error('Bank details are required')
-    }
-
-    // Simulate bank transfer processing
-    const bankResponse = await this.simulateBankTransfer({
-      bankCode: bankData.bankCode,
-      accountNumber: bankData.bankAccount,
-      amount,
-      reference: `CAR-${booking.id}`,
-      narration: `Car rental payment for ${booking.carName}`
-    })
-
-    if (bankResponse.success) {
-      const payment = this.recordPayment({
-        ...paymentData,
-        transactionId: bankResponse.transactionId,
-        providerResponse: bankResponse,
-        status: 'pending' // Bank transfers may take time to clear
-      })
-
-      // Bank transfers are usually pending initially
-      await this.updateBookingPaymentStatus(booking.id, 'confirmed_pending_payment', payment.id)
-
-      return {
-        success: true,
-        transactionId: bankResponse.transactionId,
-        message: 'Bank transfer initiated successfully. Payment will be verified within 24 hours.',
-        payment,
-        bankName: this.getBankName(bankData.bankCode)
-      }
-    } else {
-      throw new Error(bankResponse.error || 'Bank transfer failed')
-    }
-  }
-
-  // Simulate M-Pesa STK Push
-  async simulateMpesaSTKPush(data) {
-    await this.delay(1500) // Simulate STK push delay
-
-    // 95% success rate simulation
-    if (Math.random() > 0.05) {
-      return {
-        success: true,
-        transactionId: `MP${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        receiptNumber: `MP${Date.now()}`,
-        phoneNumber: data.phoneNumber,
-        amount: data.amount,
-        timestamp: new Date().toISOString()
-      }
-    } else {
-      return {
-        success: false,
-        error: 'Transaction cancelled by user or insufficient funds'
-      }
-    }
-  }
-
-  // Simulate card processing
-  async simulateCardProcessing(data) {
-    await this.delay(2000) // Simulate card processing delay
-
-    // Basic card validation
-    if (data.cardNumber.startsWith('4000000000000002')) {
-      return {
-        success: false,
-        error: 'Card declined - insufficient funds'
-      }
-    }
-
-    if (data.cardNumber.startsWith('4000000000000119')) {
-      return {
-        success: false,
-        error: 'Card declined - processing error'
-      }
-    }
-
-    // 92% success rate for other cards
-    if (Math.random() > 0.08) {
-      return {
-        success: true,
-        transactionId: `CH${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        authCode: `AUTH${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        cardType: this.getCardType(data.cardNumber),
-        last4: data.cardNumber.slice(-4),
-        timestamp: new Date().toISOString()
-      }
-    } else {
-      return {
-        success: false,
-        error: 'Card processing failed. Please try again or use a different card.'
-      }
-    }
-  }
-
-  // Simulate bank transfer
-  async simulateBankTransfer(data) {
-    await this.delay(1000) // Simulate bank API delay
-
-    // 98% success rate for bank transfers (they rarely fail during initiation)
-    if (Math.random() > 0.02) {
-      return {
-        success: true,
-        transactionId: `BT${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        referenceNumber: `REF${Date.now()}`,
-        bankCode: data.bankCode,
-        accountNumber: data.accountNumber,
-        status: 'pending_verification',
-        timestamp: new Date().toISOString()
-      }
-    } else {
-      return {
-        success: false,
-        error: 'Bank transfer initiation failed. Please check your account details.'
-      }
-    }
-  }
-
-  // Validate card details
-  validateCardDetails(cardData) {
-    const { cardNumber, expiryDate, cvv, cardName } = cardData
-
-    if (!cardNumber || cardNumber.replace(/\s/g, '').length !== 16) {
-      throw new Error('Invalid card number')
-    }
-
-    if (!expiryDate || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) {
-      throw new Error('Invalid expiry date format')
-    }
-
-    // Check if card is expired
-    const [month, year] = expiryDate.split('/')
-    const expiry = new Date(`20${year}`, month - 1)
-    const now = new Date()
-    if (expiry < now) {
-      throw new Error('Card has expired')
-    }
-
-    if (!cvv || !/^\d{3,4}$/.test(cvv)) {
-      throw new Error('Invalid CVV')
-    }
-
-    if (!cardName || cardName.trim().length < 2) {
-      throw new Error('Cardholder name is required')
-    }
-  }
-
-  // Get card type from number
-  getCardType(cardNumber) {
-    const number = cardNumber.replace(/\s/g, '')
-    
-    if (number.startsWith('4')) return 'Visa'
-    if (/^5[1-5]/.test(number) || /^2[2-7]/.test(number)) return 'Mastercard'
-    if (/^3[47]/.test(number)) return 'American Express'
-    if (/^6(?:011|5)/.test(number)) return 'Discover'
-    
-    return 'Unknown'
-  }
-
-  // Get bank name from code
-  getBankName(bankCode) {
-    const bank = kenyanBanks.find(b => b.code === bankCode)
-    return bank ? bank.name : 'Unknown Bank'
-  }
-
-  // Record payment in mock database
-  recordPayment(paymentData) {
-    const payment = {
-      id: Date.now(),
-      bookingId: paymentData.bookingId,
-      amount: paymentData.amount,
-      currency: paymentData.currency,
-      paymentMethod: paymentData.paymentMethod,
-      status: paymentData.status,
-      transactionId: paymentData.transactionId,
-      providerResponse: paymentData.providerResponse,
-      customerInfo: {
-        id: paymentData.customer.id,
-        name: paymentData.customer.name,
-        email: paymentData.customer.email
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    mockPayments.push(payment)
-    return payment
-  }
-
-  // Update booking payment status (would integrate with booking service)
-  async updateBookingPaymentStatus(bookingId, status, paymentId) {
-    // This would call the booking service to update status
-    console.log(`Updating booking ${bookingId} status to ${status} with payment ${paymentId}`)
-    
-    // Import booking service and update
+  // Card Payment Integration (Stripe/PayPal simulation)
+  async initiateCardPayment(paymentData) {
     try {
-      const { bookingService } = await import('./bookingService')
-      // Update booking with payment info
-      // bookingService.updateBookingPayment(bookingId, status, paymentId)
-    } catch (error) {
-      console.error('Error updating booking status:', error)
-    }
-  }
-
-  // Get payment history
-  getPaymentHistory(customerId) {
-    return mockPayments
-      .filter(payment => payment.customerInfo.id === customerId)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }
-
-  // Get payment by ID
-  getPaymentById(paymentId) {
-    return mockPayments.find(payment => payment.id === paymentId)
-  }
-
-  // Get payment by transaction ID
-  getPaymentByTransactionId(transactionId) {
-    return mockPayments.find(payment => payment.transactionId === transactionId)
-  }
-
-  // Admin functions
-  getAllPayments() {
-    return mockPayments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }
-
-  // Verify pending bank payments (admin function)
-  verifyBankPayment(paymentId, verified, adminUser) {
-    if (!adminUser || adminUser.role !== 'admin') {
-      throw new Error('Admin access required')
-    }
-
-    const paymentIndex = mockPayments.findIndex(p => p.id === paymentId)
-    if (paymentIndex === -1) {
-      throw new Error('Payment not found')
-    }
-
-    const payment = mockPayments[paymentIndex]
-    payment.status = verified ? 'completed' : 'failed'
-    payment.verifiedBy = adminUser.id
-    payment.verifiedAt = new Date().toISOString()
-    payment.updatedAt = new Date().toISOString()
-
-    // Update booking status accordingly
-    if (verified) {
-      this.updateBookingPaymentStatus(payment.bookingId, 'confirmed_paid', payment.id)
-    }
-
-    return payment
-  }
-
-  // Refund payment (admin function)
-  async refundPayment(paymentId, refundReason, adminUser) {
-    if (!adminUser || adminUser.role !== 'admin') {
-      throw new Error('Admin access required')
-    }
-
-    const payment = this.getPaymentById(paymentId)
-    if (!payment) {
-      throw new Error('Payment not found')
-    }
-
-    if (payment.status !== 'completed') {
-      throw new Error('Only completed payments can be refunded')
-    }
-
-    // Simulate refund processing
-    await this.delay(1000)
-
-    const refund = {
-      id: Date.now(),
-      originalPaymentId: paymentId,
-      amount: payment.amount,
-      currency: payment.currency,
-      reason: refundReason,
-      status: 'completed',
-      refundTransactionId: `RF${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-      processedBy: adminUser.id,
-      createdAt: new Date().toISOString()
-    }
-
-    // Update original payment
-    payment.refunded = true
-    payment.refundId = refund.id
-    payment.updatedAt = new Date().toISOString()
-
-    mockPayments.push({
-      ...refund,
-      type: 'refund'
-    })
-
-    return refund
-  }
-
-  // Get payment statistics
-  getPaymentStats() {
-    const today = new Date()
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const thisYear = new Date(today.getFullYear(), 0, 1)
-
-    const completedPayments = mockPayments.filter(p => p.status === 'completed' && p.type !== 'refund')
-    const totalRevenue = completedPayments.reduce((sum, p) => sum + p.amount, 0)
-
-    return {
-      totalPayments: mockPayments.length,
-      completedPayments: completedPayments.length,
-      pendingPayments: mockPayments.filter(p => p.status === 'pending').length,
-      failedPayments: mockPayments.filter(p => p.status === 'failed').length,
-      totalRevenue,
-      thisMonthRevenue: completedPayments
-        .filter(p => new Date(p.createdAt) >= thisMonth)
-        .reduce((sum, p) => sum + p.amount, 0),
-      thisYearRevenue: completedPayments
-        .filter(p => new Date(p.createdAt) >= thisYear)
-        .reduce((sum, p) => sum + p.amount, 0),
-      paymentMethods: {
-        mpesa: mockPayments.filter(p => p.paymentMethod === 'mpesa').length,
-        card: mockPayments.filter(p => p.paymentMethod === 'card').length,
-        bank: mockPayments.filter(p => p.paymentMethod === 'bank').length
+      const { bookingId, amount, cardDetails, customerInfo } = paymentData
+      
+      // Create payment record
+      const paymentRecord = {
+        bookingId,
+        amount,
+        currency: 'KSH',
+        paymentMethod: 'card',
+        status: 'pending',
+        provider: 'stripe', // or 'paypal'
+        cardLast4: cardDetails.number.slice(-4),
+        cardBrand: this.detectCardBrand(cardDetails.number),
+        customerEmail: customerInfo.email,
+        customerName: customerInfo.name,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       }
+
+      const paymentsRef = collection(db, 'payments')
+      const docRef = await addDoc(paymentsRef, paymentRecord)
+      
+      // Simulate card payment processing
+      const cardResponse = await this.simulateCardPayment({
+        ...paymentRecord,
+        paymentId: docRef.id,
+        cardDetails
+      })
+
+      // Update payment record with response
+      await updateDoc(docRef, {
+        stripePaymentIntentId: cardResponse.paymentIntentId,
+        stripeStatus: cardResponse.status,
+        processingFee: cardResponse.processingFee,
+        updatedAt: serverTimestamp()
+      })
+
+      return {
+        success: true,
+        data: {
+          paymentId: docRef.id,
+          paymentIntentId: cardResponse.paymentIntentId,
+          clientSecret: cardResponse.clientSecret,
+          status: cardResponse.status
+        }
+      }
+    } catch (error) {
+      console.error('Error initiating card payment:', error)
+      return { success: false, error: error.message }
     }
   }
 
-  // Utility function for delays
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+  // Handle MPESA callback (webhook simulation)
+  async handleMpesaCallback(callbackData) {
+    try {
+      const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } = callbackData
+      
+      // Find payment by checkout request ID
+      const paymentsRef = collection(db, 'payments')
+      const q = query(paymentsRef, where('mpesaCheckoutRequestId', '==', CheckoutRequestID))
+      const querySnapshot = await getDocs(q)
+      
+      if (querySnapshot.empty) {
+        throw new Error('Payment record not found')
+      }
+
+      const paymentDoc = querySnapshot.docs[0]
+      const paymentData = paymentDoc.data()
+      
+      let updateData = {
+        mpesaResultCode: ResultCode,
+        mpesaResultDesc: ResultDesc,
+        updatedAt: serverTimestamp()
+      }
+
+      if (ResultCode === 0) {
+        // Payment successful
+        updateData.status = 'completed'
+        updateData.completedAt = serverTimestamp()
+        
+        // Extract transaction details from callback metadata
+        if (CallbackMetadata && CallbackMetadata.Item) {
+          const metadata = this.parseMpesaMetadata(CallbackMetadata.Item)
+          updateData = { ...updateData, ...metadata }
+        }
+      } else {
+        // Payment failed
+        updateData.status = 'failed'
+        updateData.failedAt = serverTimestamp()
+      }
+
+      await updateDoc(paymentDoc.ref, updateData)
+      
+      // Update booking payment status
+      if (updateData.status === 'completed') {
+        await this.updateBookingPaymentStatus(paymentData.bookingId, 'paid', {
+          paymentId: paymentDoc.id,
+          transactionId: updateData.mpesaReceiptNumber,
+          paymentMethod: 'mpesa'
+        })
+      } else if (updateData.status === 'failed') {
+        await this.updateBookingPaymentStatus(paymentData.bookingId, 'failed', {
+          paymentId: paymentDoc.id,
+          failureReason: ResultDesc
+        })
+      }
+
+      return { success: true, data: updateData }
+    } catch (error) {
+      console.error('Error handling MPESA callback:', error)
+      return { success: false, error: error.message }
+    }
   }
 
-  // Format amount for display
-  formatAmount(amount, currency = 'KES') {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0
-    }).format(amount)
+  // Real-time payment status listener
+  subscribeToPaymentStatus(paymentId, callback) {
+    try {
+      const paymentRef = doc(db, 'payments', paymentId)
+      
+      const unsubscribe = onSnapshot(paymentRef, (doc) => {
+        if (doc.exists()) {
+          const payment = { id: doc.id, ...doc.data() }
+          callback({ success: true, data: payment })
+        } else {
+          callback({ success: false, error: 'Payment not found' })
+        }
+      }, (error) => {
+        console.error('Error in payment status subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+      
+      this.listeners.set(`payment_${paymentId}`, unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up payment status subscription:', error)
+      callback({ success: false, error: error.message })
+    }
   }
 
-  // Validate payment amount
-  validateAmount(amount) {
-    const numAmount = parseFloat(amount)
-    if (isNaN(numAmount) || numAmount <= 0) {
-      throw new Error('Invalid payment amount')
+  // Get payment history for user
+  async getUserPayments(userId) {
+    try {
+      const paymentsRef = collection(db, 'payments')
+      const q = query(
+        paymentsRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      )
+      const querySnapshot = await getDocs(q)
+      
+      const payments = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      
+      return { success: true, data: payments }
+    } catch (error) {
+      console.error('Error getting user payments:', error)
+      return { success: false, error: error.message }
     }
-    if (numAmount < 100) {
-      throw new Error('Minimum payment amount is KES 100')
+  }
+
+  // Helper methods
+  formatMpesaPhoneNumber(phoneNumber) {
+    // Convert to 254XXXXXXXXX format
+    let formatted = phoneNumber.replace(/\D/g, '') // Remove non-digits
+    
+    if (formatted.startsWith('0')) {
+      formatted = '254' + formatted.slice(1)
+    } else if (formatted.startsWith('254')) {
+      // Already in correct format
+    } else if (formatted.startsWith('7') || formatted.startsWith('1')) {
+      formatted = '254' + formatted
     }
-    if (numAmount > 1000000) {
-      throw new Error('Maximum payment amount is KES 1,000,000')
+    
+    return formatted
+  }
+
+  detectCardBrand(cardNumber) {
+    const cleaned = cardNumber.replace(/\D/g, '')
+    
+    if (/^4/.test(cleaned)) return 'visa'
+    if (/^5[1-5]/.test(cleaned)) return 'mastercard'
+    if (/^3[47]/.test(cleaned)) return 'amex'
+    if (/^6/.test(cleaned)) return 'discover'
+    
+    return 'unknown'
+  }
+
+  parseMpesaMetadata(items) {
+    const metadata = {}
+    
+    items.forEach(item => {
+      switch (item.Name) {
+        case 'Amount':
+          metadata.mpesaAmount = item.Value
+          break
+        case 'MpesaReceiptNumber':
+          metadata.mpesaReceiptNumber = item.Value
+          break
+        case 'TransactionDate':
+          metadata.mpesaTransactionDate = item.Value
+          break
+        case 'PhoneNumber':
+          metadata.mpesaPhoneNumber = item.Value
+          break
+      }
+    })
+    
+    return metadata
+  }
+
+  async updateBookingPaymentStatus(bookingId, paymentStatus, additionalData = {}) {
+    try {
+      const bookingRef = doc(db, 'bookings', bookingId)
+      await updateDoc(bookingRef, {
+        paymentStatus,
+        ...additionalData,
+        updatedAt: serverTimestamp()
+      })
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Error updating booking payment status:', error)
+      return { success: false, error: error.message }
     }
-    return numAmount
+  }
+
+  // Simulation methods (replace with real API calls)
+  async simulateMpesaSTKPush(paymentData) {
+    // Simulate MPESA API response
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          MerchantRequestID: '29115-34620561-1',
+          CheckoutRequestID: 'ws_CO_191220191020363925',
+          ResponseCode: '0',
+          ResponseDescription: 'Success. Request accepted for processing',
+          CustomerMessage: 'Success. Request accepted for processing'
+        })
+      }, 1000)
+    })
+  }
+
+  async simulateCardPayment(paymentData) {
+    // Simulate Stripe/PayPal API response
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simulate random success/failure
+        const isSuccess = Math.random() > 0.1 // 90% success rate
+        
+        if (isSuccess) {
+          resolve({
+            paymentIntentId: 'pi_' + Math.random().toString(36).substr(2, 15),
+            clientSecret: 'pi_' + Math.random().toString(36).substr(2, 15) + '_secret',
+            status: 'succeeded',
+            processingFee: Math.round(paymentData.amount * 0.035) // 3.5% processing fee
+          })
+        } else {
+          reject(new Error('Card payment failed: Insufficient funds'))
+        }
+      }, 2000)
+    })
+  }
+
+  // Payment verification for admin
+  async verifyPayment(paymentId) {
+    try {
+      const paymentRef = doc(db, 'payments', paymentId)
+      const paymentSnap = await getDoc(paymentRef)
+      
+      if (!paymentSnap.exists()) {
+        return { success: false, error: 'Payment not found' }
+      }
+
+      const payment = paymentSnap.data()
+      
+      // In a real implementation, verify with payment provider
+      let verificationResult = {
+        verified: true,
+        status: payment.status,
+        amount: payment.amount,
+        transactionId: payment.mpesaReceiptNumber || payment.stripePaymentIntentId
+      }
+
+      // Update payment with verification result
+      await updateDoc(paymentRef, {
+        verified: verificationResult.verified,
+        verifiedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+
+      return { success: true, data: verificationResult }
+    } catch (error) {
+      console.error('Error verifying payment:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Get payment statistics (admin)
+  async getPaymentStatistics() {
+    try {
+      const paymentsRef = collection(db, 'payments')
+      const querySnapshot = await getDocs(paymentsRef)
+      
+      const payments = querySnapshot.docs.map(doc => doc.data())
+      
+      const now = new Date()
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      
+      const stats = {
+        totalPayments: payments.length,
+        completedPayments: payments.filter(p => p.status === 'completed').length,
+        pendingPayments: payments.filter(p => p.status === 'pending').length,
+        failedPayments: payments.filter(p => p.status === 'failed').length,
+        totalAmount: payments
+          .filter(p => p.status === 'completed')
+          .reduce((sum, p) => sum + (p.amount || 0), 0),
+        mpesaPayments: payments.filter(p => p.paymentMethod === 'mpesa').length,
+        cardPayments: payments.filter(p => p.paymentMethod === 'card').length,
+        thisMonthAmount: payments
+          .filter(p => {
+            const createdAt = p.createdAt?.toDate ? p.createdAt.toDate() : new Date(p.createdAt)
+            return createdAt >= thisMonth && p.status === 'completed'
+          })
+          .reduce((sum, p) => sum + (p.amount || 0), 0),
+        averageTransactionValue: payments.length > 0 
+          ? payments.reduce((sum, p) => sum + (p.amount || 0), 0) / payments.length 
+          : 0
+      }
+      
+      return { success: true, data: stats }
+    } catch (error) {
+      console.error('Error getting payment statistics:', error)
+      return { success: false, error: error.message }
+    }
   }
 }
 
-// Create singleton instance
-export const paymentService = new PaymentService()
-
-// Export for testing purposes
-export { mockPayments }
+// Create and export singleton instance
+const paymentService = new PaymentService()
+export default paymentService
