@@ -67,7 +67,9 @@ export class FirebaseUserService {
           relationship: userData.emergencyContact?.relationship || ''
         },
         accountStatus: 'active',
-        role: 'customer',
+        role: userData.role || 'customer',
+        permissions: userData.permissions || [],
+        adminLevel: userData.adminLevel || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         lastLoginAt: serverTimestamp()
