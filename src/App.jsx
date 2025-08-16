@@ -54,14 +54,46 @@ function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/cars" element={<CarsPage onBookCar={openBookingModal} />} />
               <Route path="/cars/:id" element={<CarDetailPage onBookCar={openBookingModal} />} />
-              <Route path="/dashboard" element={<ModernUserDashboard />} />
-            <Route path="/dashboard/legacy" element={<UserDashboard />} />
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/test/firebase" element={<FirebaseUserTest />} />
-            <Route path="/test/googlemaps" element={<GoogleMapsApiDiagnostic />} />
-            <Route path="/test/permissions" element={<FirebasePermissionsDiagnostic />} />
-            <Route path="/test/seed" element={<FirebaseDataSeeder />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute requiredPermissions={['view_own_bookings']}>
+                  <ModernUserDashboard />
+                </ProtectedRoute>
+              } />
+            <Route path="/dashboard/legacy" element={
+                <ProtectedRoute requiredPermissions={['view_own_bookings']}>
+                  <UserDashboard />
+                </ProtectedRoute>
+              } />
+            <Route path="/profile" element={
+                <ProtectedRoute requiredPermissions={['manage_profile']}>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+            <Route path="/test/firebase" element={
+                <ProtectedRoute requiredRole="admin">
+                  <FirebaseUserTest />
+                </ProtectedRoute>
+              } />
+            <Route path="/test/googlemaps" element={
+                <ProtectedRoute requiredRole="admin">
+                  <GoogleMapsApiDiagnostic />
+                </ProtectedRoute>
+              } />
+            <Route path="/test/permissions" element={
+                <ProtectedRoute requiredRole="admin">
+                  <FirebasePermissionsDiagnostic />
+                </ProtectedRoute>
+              } />
+            <Route path="/test/seed" element={
+                <ProtectedRoute requiredRole="admin">
+                  <FirebaseDataSeeder />
+                </ProtectedRoute>
+              } />
+            <Route path="/admin" element={
+                <ProtectedRoute requiredPermissions={['view_analytics']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
             </Routes>
           </main>
 
