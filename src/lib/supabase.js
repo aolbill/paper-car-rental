@@ -1,11 +1,29 @@
 import { createClient } from '@supabase/supabase-js'
 
-// These would typically come from environment variables
-// For demo purposes, using placeholder values
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key-here'
+// Check if Supabase credentials are properly configured
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Only create client if valid credentials are provided
+const isSupabaseConfigured = supabaseUrl &&
+  supabaseKey &&
+  supabaseUrl !== 'your-supabase-url' &&
+  supabaseKey !== 'your-supabase-anon-key' &&
+  supabaseUrl.startsWith('https://')
+
+let supabase = null
+
+if (isSupabaseConfigured) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey)
+  } catch (error) {
+    console.warn('Failed to initialize Supabase client:', error.message)
+  }
+} else {
+  console.warn('Supabase not configured. Using Firebase as primary database.')
+}
+
+export { supabase }
 
 // Database schemas for reference
 export const dbSchemas = {
