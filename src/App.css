@@ -52,6 +52,7 @@ main {
 
 /* CTA Section */
 .cta-section {
+  background: linear-gradient(135deg, #FF385C 0%, #FF6B6B 100%);
   background: var(--gradient-primary);
   color: white;
   text-align: center;
