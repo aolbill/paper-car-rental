@@ -18,8 +18,8 @@ const HeroSection = () => {
       <div className="hero-content">
         <div className="container">
           <div className="hero-text">
-            <h1>Explore Kenya with Premium Car Rentals</h1>
-            <p>From Nairobi's bustling streets to safari adventures in Maasai Mara, find the perfect vehicle for your journey across beautiful Kenya.</p>
+            <h1 className="hero-title">Elegant Mobility<br /><span className="gradient-text">Redefined</span></h1>
+            <p className="hero-subtitle">Experience sophisticated car rentals with Paper Car Rental. From urban exploration to scenic adventures, discover your perfect ride.</p>
           </div>
 
           <HeroSearchForm />
