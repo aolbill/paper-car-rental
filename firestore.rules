@@ -1,31 +1,47 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection - users can read and write their own profile
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      // Allow users to create their profile on first registration
-      allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Allow users to update their own profile (but not role field)
-      allow update: if request.auth != null && request.auth.uid == userId &&
-        (!('role' in request.resource.data) ||
-         request.resource.data.role == resource.data.role);
-
-      // Allow admin to read all users and update roles
-      allow read: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow update: if request.auth != null &&
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // User activity logs - users can read their own logs, write is allowed for logging
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isOwnerOrAdmin(userId) {
+      return isOwner(userId) || isAdmin();
+    }
+
+    // Users collection - users can read and write their own profile, admins can manage all
+    match /users/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if isOwner(userId);
+      
+      // Users can create their profile on registration
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Admins can read all users
+      allow read: if isAdmin();
+      
+      // Admins can update user roles and admin-only fields
+      allow update: if isAdmin();
+    }
+    
+    // User activity logs - users can read their own logs, admins can read all
     match /userActivityLogs/{logId} {
-      allow read: if request.auth != null && 
-        request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && 
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && 
         request.auth.uid == request.resource.data.userId;
+      allow write: if isAdmin();
     }
     
     // Cars collection - PUBLIC READ ACCESS for browsing, write for admins only
@@ -33,29 +49,42 @@ service cloud.firestore {
       // Allow anyone to read cars (public browsing)
       allow read: if true;
       
-      // Only admins can write/create cars
-      allow write: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow create: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Only admins can write/create/delete cars
+      allow write, create, delete: if isAdmin();
     }
 
-    // Bookings collection - users can read/write their own bookings, admins can access all
+    // Bookings collection - users can manage their own bookings, admins can manage all
     match /bookings/{bookingId} {
-      allow read, write: if request.auth != null &&
-        (request.auth.uid == resource.data.userId ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-      allow create: if request.auth != null &&
+      // Users can read their own bookings, admins can read all
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      
+      // Users can create bookings for themselves
+      allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.userId;
+      
+      // Users can update their own bookings (limited fields), admins can update all
+      allow update: if isAuthenticated() && (
+        (request.auth.uid == resource.data.userId && 
+         !('status' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         !('paymentStatus' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        isAdmin()
+      );
+      
+      // Only admins can delete bookings
+      allow delete: if isAdmin();
     }
     
-    // Payments collection - users can read/write their own payments, admins can access all
+    // Payments collection - users can read their own payments, admins can manage all
     match /payments/{paymentId} {
-      allow read, write: if request.auth != null &&
-        (request.auth.uid == resource.data.userId ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-      allow create: if request.auth != null &&
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.userId;
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId || isAdmin()
+      );
+      allow delete: if isAdmin();
     }
     
     // Locations collection - PUBLIC READ ACCESS, write for admins only
@@ -63,35 +92,48 @@ service cloud.firestore {
       // Allow anyone to read locations (for pickup/dropoff selection)
       allow read: if true;
       
-      // Only admins can write locations
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Only admins can manage locations
+      allow write, create, delete: if isAdmin();
     }
     
-    // Messages collection - users can read/write messages in conversations they participate in
+    // Messages collection - authenticated users can manage messages they participate in
     match /messages/{messageId} {
-      allow read, write: if request.auth != null;
-      allow create: if request.auth != null;
+      allow read, write: if isAuthenticated();
+      allow create: if isAuthenticated();
     }
     
-    // Conversations collection - users can read/write conversations they participate in
+    // Conversations collection - authenticated users can manage conversations they participate in
     match /conversations/{conversationId} {
-      allow read, write: if request.auth != null;
-      allow create: if request.auth != null;
+      allow read, write: if isAuthenticated();
+      allow create: if isAuthenticated();
     }
     
-    // Notifications collection - users can read their own notifications
+    // Notifications collection - users can manage their own notifications
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && 
+      allow read: if isAuthenticated() && 
         request.auth.uid == resource.data.userId;
-      allow create, update: if request.auth != null && 
+      allow create, update: if isAuthenticated() && 
         request.auth.uid == request.resource.data.userId;
+      allow delete: if isOwnerOrAdmin(resource.data.userId);
     }
     
     // FCM tokens collection - users can manage their own tokens
     match /fcm_tokens/{userId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid == userId;
+      allow read, write: if isOwnerOrAdmin(userId);
+    }
+    
+    // Admin analytics and reports - admin only
+    match /analytics/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /reports/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // System configuration - admin only
+    match /config/{document=**} {
+      allow read, write: if isAdmin();
     }
     
     // Default deny all other collections
