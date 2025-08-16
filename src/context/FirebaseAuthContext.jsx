@@ -182,6 +182,10 @@ export const AuthProvider = ({ children }) => {
 
   // Reset password
   const resetPassword = async (email) => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured.' }
+    }
+
     try {
       await sendPasswordResetEmail(auth, email)
       return { success: true }
