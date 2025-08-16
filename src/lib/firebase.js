@@ -15,13 +15,31 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
+// Check if Firebase is configured
+const isFirebaseConfigured = firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId
 
-// Initialize Firebase services
-export const db = getFirestore(app)
-export const auth = getAuth(app)
-export const analytics = getAnalytics(app)
-export const storage = getStorage(app)
+let app = null
+let db = null
+let auth = null
+let analytics = null
+let storage = null
+
+if (isFirebaseConfigured) {
+  // Initialize Firebase
+  app = initializeApp(firebaseConfig)
+
+  // Initialize Firebase services
+  db = getFirestore(app)
+  auth = getAuth(app)
+  analytics = getAnalytics(app)
+  storage = getStorage(app)
+} else {
+  console.warn('Firebase configuration missing. Firebase services disabled.')
+}
+
+// Export services (will be null if not configured)
+export { db, auth, analytics, storage }
 
 export default app
