@@ -21,7 +21,7 @@ const app = initializeApp(firebaseConfig)
 // Initialize Firebase services
 export const db = getFirestore(app)
 export const auth = getAuth(app)
-export const analytics = getAnalytics(app)
+// export const analytics = getAnalytics(app) // Disabled until proper Firebase config is set
 export const storage = getStorage(app)
 
 export default app
