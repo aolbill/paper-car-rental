@@ -30,8 +30,17 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  // Check if Firebase is available
+  const isFirebaseAvailable = auth !== null && db !== null
+
   // Listen for authentication state changes
   useEffect(() => {
+    if (!isFirebaseAvailable) {
+      console.warn('Firebase not configured. Authentication disabled.')
+      setIsLoading(false)
+      return
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
