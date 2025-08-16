@@ -93,14 +93,18 @@
 }
 
 .stat-item {
-  text-align: center;
-  background: var(--paper-white);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-2xl);
-  padding: var(--spacing-xl);
-  border: 2px solid var(--neutral-200);
+  padding: 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
 }
 
 .stat-item::before {
