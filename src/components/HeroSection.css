@@ -4,6 +4,7 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
 }
 
 .hero-background {
@@ -19,6 +20,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.6;
+  filter: grayscale(100%) contrast(1.2);
 }
 
 .hero-overlay {
@@ -27,7 +30,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--gradient-hero);
+  background: linear-gradient(
+    135deg, 
+    rgba(0, 0, 0, 0.8) 0%, 
+    rgba(0, 0, 0, 0.6) 50%, 
+    rgba(0, 0, 0, 0.9) 100%
+  );
   z-index: 1;
 }
 
@@ -44,19 +52,25 @@
 }
 
 .hero-text h1 {
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 700;
   margin-bottom: var(--spacing-lg);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
   color: white;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-text p {
   font-size: 1.25rem;
   max-width: 600px;
   margin: 0 auto;
-  opacity: 0.95;
+  opacity: 0.9;
   line-height: 1.6;
+  color: #e0e0e0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .hero-stats {
@@ -69,30 +83,40 @@
 
 .stat-item {
   text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .stat-item h4 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 700;
   margin-bottom: var(--spacing-sm);
   color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .stat-item p {
   font-size: 0.875rem;
-  opacity: 0.9;
+  opacity: 0.8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  color: #cccccc;
 }
 
 @media (max-width: 768px) {
   .hero-text h1 {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
   }
 
   .hero-text p {
@@ -115,16 +139,24 @@
   }
 
   .stat-item h4 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .hero-text h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .hero-stats {
     grid-template-columns: 1fr;
+  }
+
+  .stat-item {
+    padding: var(--spacing-md);
+  }
+
+  .stat-item h4 {
+    font-size: 1.6rem;
   }
 }
