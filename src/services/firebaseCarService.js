@@ -1,21 +1,110 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
-  getDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  addDoc,
+  getDocs,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
   limit,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 
 class FirebaseCarService {
-  
+  constructor() {
+    this.listeners = new Map()
+  }
+
+  // Cleanup listeners
+  cleanup() {
+    this.listeners.forEach(unsubscribe => unsubscribe())
+    this.listeners.clear()
+  }
+
+  // Real-time listener for all cars
+  subscribeToAllCars(callback) {
+    try {
+      const carsRef = collection(db, 'cars')
+      const q = query(carsRef, orderBy('createdAt', 'desc'))
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const cars = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        callback({ success: true, data: cars })
+      }, (error) => {
+        console.error('Error in cars subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set('allCars', unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up cars subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
+  // Real-time listener for available cars
+  subscribeToAvailableCars(callback) {
+    try {
+      const carsRef = collection(db, 'cars')
+      const q = query(
+        carsRef,
+        where('available', '==', true),
+        orderBy('createdAt', 'desc')
+      )
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const cars = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        callback({ success: true, data: cars })
+      }, (error) => {
+        console.error('Error in available cars subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set('availableCars', unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up available cars subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
+  // Real-time listener for specific car
+  subscribeToCarById(carId, callback) {
+    try {
+      const carRef = doc(db, 'cars', carId)
+
+      const unsubscribe = onSnapshot(carRef, (doc) => {
+        if (doc.exists()) {
+          const car = { id: doc.id, ...doc.data() }
+          callback({ success: true, data: car })
+        } else {
+          callback({ success: false, error: 'Car not found' })
+        }
+      }, (error) => {
+        console.error('Error in car subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set(`car_${carId}`, unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up car subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
   // Get all cars
   async getAllCars() {
     try {
