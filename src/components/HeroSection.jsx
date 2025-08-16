@@ -1,5 +1,5 @@
 import React from 'react'
-import HeroSearchForm from './HeroSearchForm'
+import HeroSearchFormSimple from './HeroSearchFormSimple'
 import './HeroSection.css'
 
 const HeroSection = () => {
@@ -22,7 +22,7 @@ const HeroSection = () => {
             <p>From Nairobi's bustling streets to safari adventures in Maasai Mara, find the perfect vehicle for your journey across beautiful Kenya.</p>
           </div>
 
-          <HeroSearchForm />
+          <HeroSearchFormSimple />
 
           <div className="hero-stats">
             <div className="stat-item">
