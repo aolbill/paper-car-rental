@@ -34,8 +34,8 @@ const Navigation = ({ onOpenAuth }) => {
     <nav className="navigation">
       <div className="nav-container">
         <Link to="/" className="nav-brand">
-          <h3>🚗 RentKenya</h3>
-          <span className="nav-tagline">Premium Car Rentals</span>
+          <h3>📄 Paper Car Rental</h3>
+          <span className="nav-tagline">Elegant Mobility Solutions</span>
         </Link>
 
         <div className={`nav-menu ${isMenuOpen ? 'nav-menu-open' : ''}`}>
