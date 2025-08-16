@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import realTimeService from './realTimeService'
 
 class MessagingService {
