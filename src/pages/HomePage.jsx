@@ -12,8 +12,8 @@ const HomePage = ({ onBookCar }) => {
       <section className="features-section section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose RentKenya?</h2>
-            <p>Experience the best car rental service in Kenya</p>
+            <h2>Why Choose Paper Car Rental?</h2>
+            <p>Experience sophisticated mobility solutions designed for the modern traveler</p>
           </div>
           
           <div className="features-grid">
