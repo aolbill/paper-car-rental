@@ -1,30 +1,60 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/FirebaseAuthContext'
 import { Navigate } from 'react-router-dom'
-import { bookingService } from '../services/bookingService'
+import firebaseBookingService from '../services/firebaseBookingService'
+import firebaseCarService from '../services/firebaseCarService'
 import AdminBookings from '../components/admin/AdminBookings'
-import AdminCars from '../components/admin/AdminCars'
+import AdminCarsManager from '../components/admin/AdminCarsManager'
 import AdminRequests from '../components/admin/AdminRequests'
 import AdminAnalytics from '../components/admin/AdminAnalytics'
 import AdminMessaging from '../components/admin/AdminMessaging'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated, isAdmin } = useAuth()
+  const { user, userProfile, isAuthenticated } = useAuth()
   const [activeTab, setActiveTab] = useState('analytics')
   const [stats, setStats] = useState({})
+  const [loading, setLoading] = useState(true)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+  // Check if user is admin
+  const isAdmin = userProfile?.role === 'admin' || user?.email === 'admin@papercarrental.com'
 
   useEffect(() => {
     if (isAdmin) {
-      const bookingStats = bookingService.getBookingStats()
-      setStats(bookingStats)
+      loadStats()
     }
+    setLoading(false)
   }, [isAdmin, refreshTrigger])
 
+  const loadStats = async () => {
+    try {
+      const [bookingStats, carStats] = await Promise.all([
+        firebaseBookingService.getBookingStatistics(),
+        firebaseCarService.getCarStatistics()
+      ])
+
+      setStats({
+        bookings: bookingStats.success ? bookingStats.data : {},
+        cars: carStats.success ? carStats.data : {}
+      })
+    } catch (error) {
+      console.error('Error loading admin stats:', error)
+    }
+  }
+
   // Redirect if not admin
-  if (!isAuthenticated || !isAdmin) {
+  if (!isAuthenticated || (!loading && !isAdmin)) {
     return <Navigate to="/" />
+  }
+
+  if (loading) {
+    return (
+      <div className="admin-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading admin dashboard...</p>
+      </div>
+    )
   }
 
   const handleRefresh = () => {

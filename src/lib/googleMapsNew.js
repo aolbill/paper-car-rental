@@ -2,7 +2,7 @@ import { Loader } from '@googlemaps/js-api-loader'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
-// Updated loader configuration for better compatibility
+// Updated loader configuration for new APIs
 const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
   version: 'weekly',
@@ -20,7 +20,7 @@ export const loadGoogleMaps = () => {
 
 export const createMap = async (elementId, options = {}) => {
   const google = await loadGoogleMaps()
-
+  
   const defaultOptions = {
     center: { lat: -1.2921, lng: 36.8219 }, // Nairobi, Kenya
     zoom: 10,
@@ -29,14 +29,14 @@ export const createMap = async (elementId, options = {}) => {
     streetViewControl: false,
     ...options
   }
-
+  
   return new google.maps.Map(document.getElementById(elementId), defaultOptions)
 }
 
 // Enhanced autocomplete with better error handling
 export const createAutocomplete = async (inputElement, options = {}) => {
   const google = await loadGoogleMaps()
-
+  
   try {
     const defaultOptions = {
       componentRestrictions: { country: 'ke' }, // Restrict to Kenya
@@ -44,10 +44,10 @@ export const createAutocomplete = async (inputElement, options = {}) => {
       types: ['establishment', 'geocode'],
       ...options
     }
-
-    // Create autocomplete - this should work with proper API enablement
+    
+    // Create autocomplete with enhanced configuration
     const autocomplete = new google.maps.places.Autocomplete(inputElement, defaultOptions)
-
+    
     // Add enhanced place change listener
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace()
@@ -55,13 +55,13 @@ export const createAutocomplete = async (inputElement, options = {}) => {
         console.warn('No geometry available for the selected place')
         return
       }
-
+      
       // Custom event to notify components
       inputElement.dispatchEvent(new CustomEvent('place_selected', {
         detail: place
       }))
     })
-
+    
     return autocomplete
   } catch (error) {
     console.error('Error creating autocomplete:', error)
@@ -69,12 +69,12 @@ export const createAutocomplete = async (inputElement, options = {}) => {
   }
 }
 
-// Improved geocoding with Places API integration and fallback
+// Improved geocoding with Places API integration
 export const geocodeAddress = async (address) => {
   const google = await loadGoogleMaps()
-
+  
   try {
-    // First try with Places Text Search (recommended for new implementations)
+    // First try with Places Text Search (recommended approach)
     const request = {
       query: address,
       locationBias: {
@@ -82,9 +82,9 @@ export const geocodeAddress = async (address) => {
         radius: 50000 // 50km radius
       }
     }
-
+    
     const service = new google.maps.places.PlacesService(document.createElement('div'))
-
+    
     return new Promise((resolve, reject) => {
       service.textSearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
@@ -97,29 +97,26 @@ export const geocodeAddress = async (address) => {
             types: result.types
           })
         } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          // Fallback to Geocoding API for zero results
-          fallbackToGeocoding(address, google, resolve, reject)
+          // Fallback to Geocoding API
+          fallbackToGeocoding(address, resolve, reject)
         } else {
           reject(new Error(`Places search failed: ${status}`))
         }
       })
     })
   } catch (error) {
-    // Fallback to geocoding if Places API fails completely
-    const google = await loadGoogleMaps()
-    return fallbackToGeocoding(address, google)
+    // Fallback to geocoding if Places API fails
+    return fallbackToGeocoding(address)
   }
 }
 
-// Helper function for geocoding fallback
-const fallbackToGeocoding = async (address, google, resolve = null, reject = null) => {
+// Fallback function for geocoding
+const fallbackToGeocoding = async (address, resolve = null, reject = null) => {
+  const google = await loadGoogleMaps()
   const geocoder = new google.maps.Geocoder()
-
+  
   const promise = new Promise((res, rej) => {
-    geocoder.geocode({
-      address,
-      region: 'KE' // Kenya region bias
-    }, (results, status) => {
+    geocoder.geocode({ address }, (results, status) => {
       if (status === 'OK' && results.length > 0) {
         res(results[0])
       } else {
@@ -127,7 +124,7 @@ const fallbackToGeocoding = async (address, google, resolve = null, reject = nul
       }
     })
   })
-
+  
   if (resolve && reject) {
     promise.then(resolve).catch(reject)
   } else {
@@ -135,19 +132,18 @@ const fallbackToGeocoding = async (address, google, resolve = null, reject = nul
   }
 }
 
-// Enhanced reverse geocoding function
+// Enhanced reverse geocoding
 export const reverseGeocode = async (latLng) => {
   const google = await loadGoogleMaps()
-
+  
   try {
-    // Use Geocoding API for reverse geocoding (still the best option for this)
     const geocoder = new google.maps.Geocoder()
-
+    
     return new Promise((resolve, reject) => {
-      geocoder.geocode({
+      geocoder.geocode({ 
         location: latLng,
         language: 'en',
-        region: 'KE' // Kenya region code for better results
+        region: 'KE' // Kenya region code
       }, (results, status) => {
         if (status === 'OK' && results.length > 0) {
           // Return the most relevant result (usually the first one)
@@ -162,15 +158,21 @@ export const reverseGeocode = async (latLng) => {
   }
 }
 
-// New function for Places API nearby search
-export const findNearbyPlaces = async (location, radius = 5000, type = 'establishment') => {
+// Enhanced nearby search with Places API
+export const findNearbyPlaces = async (location, options = {}) => {
   const google = await loadGoogleMaps()
   
   try {
+    const defaultOptions = {
+      radius: 5000, // 5km default
+      type: 'establishment',
+      ...options
+    }
+    
     const request = {
       location: location,
-      radius: radius,
-      type: [type]
+      radius: defaultOptions.radius,
+      type: [defaultOptions.type]
     }
     
     const service = new google.maps.places.PlacesService(document.createElement('div'))
@@ -189,18 +191,21 @@ export const findNearbyPlaces = async (location, radius = 5000, type = 'establis
   }
 }
 
-// Helper function to get place details
-export const getPlaceDetails = async (placeId) => {
+// Get detailed place information
+export const getPlaceDetails = async (placeId, fields = []) => {
   const google = await loadGoogleMaps()
-
+  
   try {
+    const defaultFields = ['name', 'formatted_address', 'geometry', 'place_id', 'types', 'address_components']
+    const requestFields = fields.length > 0 ? fields : defaultFields
+    
     const request = {
       placeId: placeId,
-      fields: ['name', 'formatted_address', 'geometry', 'place_id', 'types', 'address_components']
+      fields: requestFields
     }
-
+    
     const service = new google.maps.places.PlacesService(document.createElement('div'))
-
+    
     return new Promise((resolve, reject) => {
       service.getDetails(request, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -218,16 +223,16 @@ export const getPlaceDetails = async (placeId) => {
 // Autocomplete predictions (alternative to widget)
 export const getAutocompletePredictions = async (input, options = {}) => {
   const google = await loadGoogleMaps()
-
+  
   try {
     const defaultOptions = {
       componentRestrictions: { country: 'ke' },
       types: ['establishment', 'geocode'],
       ...options
     }
-
+    
     const service = new google.maps.places.AutocompleteService()
-
+    
     return new Promise((resolve, reject) => {
       service.getPlacePredictions({
         input: input,
@@ -251,14 +256,14 @@ export const getAutocompletePredictions = async (input, options = {}) => {
 export const checkApiAvailability = async () => {
   try {
     const google = await loadGoogleMaps()
-
+    
     const availability = {
       maps: !!google.maps,
       places: !!google.maps.places,
       geocoding: !!google.maps.Geocoder,
       apiKey: !!GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY !== 'your-google-maps-api-key'
     }
-
+    
     return {
       available: Object.values(availability).every(Boolean),
       details: availability
@@ -275,4 +280,12 @@ export const checkApiAvailability = async () => {
       }
     }
   }
+}
+
+// Export legacy function names for backward compatibility
+export {
+  geocodeAddress as geocode,
+  reverseGeocode as reverseGeocode,
+  findNearbyPlaces as nearbySearch,
+  getPlaceDetails as placeDetails
 }

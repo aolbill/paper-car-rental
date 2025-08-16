@@ -11,6 +11,11 @@ import CarDetailPage from './pages/CarDetailPage'
 import UserDashboard from './pages/UserDashboard'
 import ModernUserDashboard from './pages/ModernUserDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import UserProfile from './components/UserProfile'
+import FirebaseUserTest from './components/FirebaseUserTest'
+import GoogleMapsApiDiagnostic from './components/GoogleMapsApiDiagnostic'
+import FirebasePermissionsDiagnostic from './components/FirebasePermissionsDiagnostic'
+import FirebaseDataSeeder from './components/FirebaseDataSeeder'
 import ModernAuthModal from './components/ModernAuthModal'
 import BookingModal from './components/BookingModal'
 import ToastNotification from './components/ToastNotification'
@@ -49,6 +54,11 @@ function App() {
               <Route path="/cars/:id" element={<CarDetailPage onBookCar={openBookingModal} />} />
               <Route path="/dashboard" element={<ModernUserDashboard />} />
             <Route path="/dashboard/legacy" element={<UserDashboard />} />
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/test/firebase" element={<FirebaseUserTest />} />
+            <Route path="/test/googlemaps" element={<GoogleMapsApiDiagnostic />} />
+            <Route path="/test/permissions" element={<FirebasePermissionsDiagnostic />} />
+            <Route path="/test/seed" element={<FirebaseDataSeeder />} />
             <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
           </main>

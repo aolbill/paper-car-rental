@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../lib/firebase'
+import firebaseUserService from '../services/firebaseUserService'
 
 const AuthContext = createContext()
 
@@ -36,33 +37,29 @@ export const AuthProvider = ({ children }) => {
         setUser(firebaseUser)
         setIsAuthenticated(true)
         
-        // Fetch user profile from Firestore
+        // Fetch user profile from Firestore using service
         try {
-          const userDocRef = doc(db, 'users', firebaseUser.uid)
-          const userDoc = await getDoc(userDocRef)
-          
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data())
+          const result = await firebaseUserService.getUserProfile(firebaseUser.uid)
+
+          if (result.success) {
+            setUserProfile(result.data)
+            // Update last login
+            await firebaseUserService.updateLastLogin(firebaseUser.uid)
           } else {
             // Create user profile if it doesn't exist
-            const defaultProfile = {
+            const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, {
               email: firebaseUser.email,
               name: firebaseUser.displayName || '',
-              phone: '',
-              profileImageUrl: firebaseUser.photoURL || '',
-              isVerified: false,
-              verificationStatus: 'pending',
-              documents: {
-                nationalId: { uploaded: false, verified: false, url: '' },
-                proofOfResidence: { uploaded: false, verified: false, url: '' },
-                kraPin: { uploaded: false, verified: false, url: '' }
-              },
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+              profileImageUrl: firebaseUser.photoURL || ''
+            })
+
+            if (profileResult.success) {
+              setUserProfile(profileResult.data)
+              // Log user registration activity
+              await firebaseUserService.logUserActivity(firebaseUser.uid, 'profile_created', {
+                method: 'auto_creation_on_auth'
+              })
             }
-            
-            await setDoc(userDocRef, defaultProfile)
-            setUserProfile(defaultProfile)
           }
         } catch (error) {
           console.error('Error fetching user profile:', error)
@@ -92,25 +89,24 @@ export const AuthProvider = ({ children }) => {
         })
       }
 
-      // Create user profile in Firestore
-      const userProfile = {
+      // Create user profile in Firestore using service
+      const profileResult = await firebaseUserService.createUserProfile(firebaseUser.uid, {
         email: email,
         name: userData.name || '',
         phone: userData.phone || '',
-        profileImageUrl: '',
-        isVerified: false,
-        verificationStatus: 'pending',
-        documents: {
-          nationalId: { uploaded: false, verified: false, url: '' },
-          proofOfResidence: { uploaded: false, verified: false, url: '' },
-          kraPin: { uploaded: false, verified: false, url: '' }
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+        address: userData.address || {},
+        preferences: userData.preferences || {},
+        emergencyContact: userData.emergencyContact || {}
+      })
 
-      await setDoc(doc(db, 'users', firebaseUser.uid), userProfile)
-      setUserProfile(userProfile)
+      if (profileResult.success) {
+        setUserProfile(profileResult.data)
+        // Log user registration activity
+        await firebaseUserService.logUserActivity(firebaseUser.uid, 'account_registered', {
+          registrationMethod: 'email_password',
+          userAgent: navigator.userAgent
+        })
+      }
 
       return { success: true, user: firebaseUser }
     } catch (error) {
@@ -182,55 +178,48 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Update user profile
+  // Update user profile using service
   const updateUserProfile = async (profileData) => {
     if (!user) return { success: false, error: 'No user logged in' }
 
     try {
-      const userDocRef = doc(db, 'users', user.uid)
-      const updatedData = {
-        ...profileData,
-        updatedAt: new Date().toISOString()
+      const result = await firebaseUserService.updateUserProfile(user.uid, profileData)
+
+      if (result.success) {
+        setUserProfile(prev => ({ ...prev, ...profileData }))
+        // Log profile update activity
+        await firebaseUserService.logUserActivity(user.uid, 'profile_updated', {
+          updatedFields: Object.keys(profileData),
+          userAgent: navigator.userAgent
+        })
+        return { success: true }
+      } else {
+        return { success: false, error: result.error }
       }
-
-      await updateDoc(userDocRef, updatedData)
-      setUserProfile(prev => ({ ...prev, ...updatedData }))
-
-      // Update Firebase Auth profile if name changed
-      if (profileData.name && profileData.name !== user.displayName) {
-        await updateProfile(user, { displayName: profileData.name })
-      }
-
-      return { success: true }
     } catch (error) {
       console.error('Profile update error:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // Change password
+  // Change password using service
   const changePassword = async (currentPassword, newPassword) => {
     if (!user) return { success: false, error: 'No user logged in' }
 
     try {
-      // Re-authenticate user
-      const credential = EmailAuthProvider.credential(user.email, currentPassword)
-      await reauthenticateWithCredential(user, credential)
-      
-      // Update password
-      await updatePassword(user, newPassword)
-      return { success: true }
+      const result = await firebaseUserService.updateUserPassword(user.uid, currentPassword, newPassword)
+
+      if (result.success) {
+        // Log password change activity
+        await firebaseUserService.logUserActivity(user.uid, 'password_changed', {
+          userAgent: navigator.userAgent
+        })
+      }
+
+      return result
     } catch (error) {
       console.error('Password change error:', error)
-      let errorMessage = 'Failed to change password.'
-      
-      if (error.code === 'auth/wrong-password') {
-        errorMessage = 'Current password is incorrect.'
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = 'New password is too weak.'
-      }
-      
-      return { success: false, error: errorMessage }
+      return { success: false, error: error.message }
     }
   }
 
@@ -238,6 +227,72 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = () => {
     const adminEmails = ['admin@papercarrental.com', 'manager@papercarrental.com']
     return user && adminEmails.includes(user.email)
+  }
+
+  // Delete user account
+  const deleteUserAccount = async (currentPassword) => {
+    if (!user) return { success: false, error: 'No user logged in' }
+
+    try {
+      const result = await firebaseUserService.deleteUserAccount(user.uid, currentPassword)
+
+      if (result.success) {
+        // Log account deletion before clearing state
+        await firebaseUserService.logUserActivity(user.uid, 'account_deleted', {
+          deletionMethod: 'self_deletion',
+          userAgent: navigator.userAgent
+        })
+
+        // Clear local state
+        setUser(null)
+        setUserProfile(null)
+        setIsAuthenticated(false)
+      }
+
+      return result
+    } catch (error) {
+      console.error('Account deletion error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Add to favorites
+  const addToFavorites = async (vehicleId) => {
+    if (!user) return { success: false, error: 'No user logged in' }
+
+    const result = await firebaseUserService.addToFavorites(user.uid, vehicleId)
+    if (result.success) {
+      setUserProfile(prev => ({
+        ...prev,
+        favoriteVehicles: [...(prev.favoriteVehicles || []), vehicleId]
+      }))
+    }
+    return result
+  }
+
+  // Remove from favorites
+  const removeFromFavorites = async (vehicleId) => {
+    if (!user) return { success: false, error: 'No user logged in' }
+
+    const result = await firebaseUserService.removeFromFavorites(user.uid, vehicleId)
+    if (result.success) {
+      setUserProfile(prev => ({
+        ...prev,
+        favoriteVehicles: (prev.favoriteVehicles || []).filter(id => id !== vehicleId)
+      }))
+    }
+    return result
+  }
+
+  // Update user preferences
+  const updateUserPreferences = async (preferences) => {
+    if (!user) return { success: false, error: 'No user logged in' }
+
+    const result = await firebaseUserService.updateUserPreferences(user.uid, preferences)
+    if (result.success) {
+      setUserProfile(prev => ({ ...prev, preferences }))
+    }
+    return result
   }
 
   const value = {
@@ -251,7 +306,13 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updateUserProfile,
     changePassword,
-    isAdmin
+    deleteUserAccount,
+    addToFavorites,
+    removeFromFavorites,
+    updateUserPreferences,
+    isAdmin,
+    // User service methods for direct access
+    userService: firebaseUserService
   }
 
   return (

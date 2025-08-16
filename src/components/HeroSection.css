@@ -40,7 +40,7 @@
 
 .hero-text {
   text-align: center;
-  margin-bottom: var(--spacing-3xl);
+  margin-bottom: 3rem;
 }
 
 .hero-text h1 {
@@ -59,89 +59,12 @@
   line-height: 1.6;
 }
 
-.search-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-xl);
-  max-width: 900px;
-  margin: 0 auto var(--spacing-3xl);
-  box-shadow: var(--shadow-xl);
-  color: var(--neutral-800);
-}
-
-.search-card h3 {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
-  color: var(--neutral-900);
-}
-
-.search-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.form-group label {
-  font-weight: 500;
-  color: var(--neutral-700);
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-group input,
-.form-group select {
-  padding: var(--spacing-md);
-  border: 2px solid var(--neutral-200);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  background: white;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.search-btn {
-  background: var(--gradient-primary);
-  color: white;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  transition: all 0.2s ease;
-  margin-top: var(--spacing-md);
-}
-
-.search-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-}
-
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--spacing-xl);
+  gap: 2rem;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 3rem auto 0;
 }
 
 .stat-item {

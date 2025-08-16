@@ -1,0 +1,67 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Enable debug logging for rules (remove in production)
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read and write their own profile
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+    }
+    
+    // Cars collection - all authenticated users can read, admins can write
+    match /cars/{carId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated(); // Temporarily allow all authenticated users to write
+    }
+    
+    // Bookings collection - users can read/write their own bookings
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+    
+    // User activity logs
+    match /userActivityLogs/{logId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+    
+    // Messages and conversations
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+    
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+    
+    // Fallback rule - allow all authenticated users (for debugging)
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

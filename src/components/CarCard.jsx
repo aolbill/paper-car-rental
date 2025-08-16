@@ -99,7 +99,7 @@ const CarCard = ({ car, onBookNow, onViewDetails }) => {
           <h3 className="car-name-simple">{car.name}</h3>
           <div className="rating-simple">
             <span className="rating-star">★</span>
-            <span className="rating-number">{car.rating}</span>
+            <span className="rating-number">{car.averageRating || 0}</span>
             <span className="reviews-count-simple" onClick={handleReviewsClick}>
               ({car.reviewCount || 0})
             </span>
@@ -108,7 +108,7 @@ const CarCard = ({ car, onBookNow, onViewDetails }) => {
 
         {/* Essential features only */}
         <div className="features-simple">
-          <span className="feature-simple">{car.specifications?.doors || 4} seats</span>
+          <span className="feature-simple">{car.seats || 5} seats</span>
           <span className="feature-divider">•</span>
           <span className="feature-simple">{car.fuel}</span>
           <span className="feature-divider">•</span>
@@ -118,7 +118,7 @@ const CarCard = ({ car, onBookNow, onViewDetails }) => {
         {/* Location */}
         <div className="location-simple">
           <span className="location-icon">📍</span>
-          <span className="location-text">{car.pickupLocations?.[0] || 'Nairobi CBD'}</span>
+          <span className="location-text">{car.location || 'Nairobi'}</span>
         </div>
 
         {/* Price and book button */}

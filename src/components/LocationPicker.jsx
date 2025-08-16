@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { createMap, createAutocomplete } from '../lib/googleMaps'
+import { createMap, createAutocomplete, reverseGeocode } from '../lib/googleMaps'
 import './LocationPicker.css'
 
 const LocationPicker = ({ 
@@ -102,19 +102,13 @@ const LocationPicker = ({
     if (!mapInstance) return
 
     const google = window.google
-    const geocoder = new google.maps.Geocoder()
     const latLng = event.latLng
 
     try {
-      const response = await new Promise((resolve, reject) => {
-        geocoder.geocode({ location: latLng }, (results, status) => {
-          if (status === 'OK') resolve(results)
-          else reject(new Error(`Geocoding failed: ${status}`))
-        })
-      })
+      // Use the new reverse geocoding function
+      const place = await reverseGeocode(latLng)
 
-      if (response[0]) {
-        const place = response[0]
+      if (place) {
         
         // Update marker
         if (markerRef.current) {
