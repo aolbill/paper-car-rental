@@ -201,8 +201,7 @@
   margin-left: auto;
   margin-right: auto;
   line-height: 1.7;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease-out 0.4s forwards;
+  opacity: 1;
   color: var(--paper-white);
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
   z-index: 10;
