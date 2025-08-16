@@ -26,7 +26,7 @@ const HeroSection = () => {
 
           <div className="hero-stats">
             <div className="stat-item">
-              <div className="stat-icon">👥</div>
+              <div className="stat-icon clients-icon">👤</div>
               <div className="stat-content">
                 <h4>12,500+</h4>
                 <p>Satisfied Clients</p>
@@ -34,7 +34,7 @@ const HeroSection = () => {
               </div>
             </div>
             <div className="stat-item">
-              <div className="stat-icon">🚗</div>
+              <div className="stat-icon vehicles-icon">🚘</div>
               <div className="stat-content">
                 <h4>250+</h4>
                 <p>Luxury Vehicles</p>
@@ -42,7 +42,7 @@ const HeroSection = () => {
               </div>
             </div>
             <div className="stat-item">
-              <div className="stat-icon">📍</div>
+              <div className="stat-icon locations-icon">📌</div>
               <div className="stat-content">
                 <h4>20+</h4>
                 <p>Prime Locations</p>
@@ -50,7 +50,7 @@ const HeroSection = () => {
               </div>
             </div>
             <div className="stat-item">
-              <div className="stat-icon">💬</div>
+              <div className="stat-icon support-icon">🎧</div>
               <div className="stat-content">
                 <h4>24/7</h4>
                 <p>Expert Support</p>
