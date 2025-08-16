@@ -1,23 +1,141 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
-  getDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  addDoc,
+  getDocs,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
   limit,
   serverTimestamp,
-  writeBatch
+  writeBatch,
+  onSnapshot
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import firebaseCarService from './firebaseCarService'
 
 class FirebaseBookingService {
-  
+  constructor() {
+    this.listeners = new Map()
+  }
+
+  // Cleanup listeners
+  cleanup() {
+    this.listeners.forEach(unsubscribe => unsubscribe())
+    this.listeners.clear()
+  }
+
+  // Real-time listener for user bookings
+  subscribeToUserBookings(userId, callback) {
+    try {
+      const bookingsRef = collection(db, 'bookings')
+      const q = query(
+        bookingsRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      )
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const bookings = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        callback({ success: true, data: bookings })
+      }, (error) => {
+        console.error('Error in user bookings subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set(`userBookings_${userId}`, unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up user bookings subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
+  // Real-time listener for all bookings (admin)
+  subscribeToAllBookings(callback) {
+    try {
+      const bookingsRef = collection(db, 'bookings')
+      const q = query(bookingsRef, orderBy('createdAt', 'desc'))
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const bookings = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        callback({ success: true, data: bookings })
+      }, (error) => {
+        console.error('Error in all bookings subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set('allBookings', unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up all bookings subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
+  // Real-time listener for specific booking
+  subscribeToBookingById(bookingId, callback) {
+    try {
+      const bookingRef = doc(db, 'bookings', bookingId)
+
+      const unsubscribe = onSnapshot(bookingRef, (doc) => {
+        if (doc.exists()) {
+          const booking = { id: doc.id, ...doc.data() }
+          callback({ success: true, data: booking })
+        } else {
+          callback({ success: false, error: 'Booking not found' })
+        }
+      }, (error) => {
+        console.error('Error in booking subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set(`booking_${bookingId}`, unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up booking subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
+  // Real-time listener for pending bookings (admin)
+  subscribeToPendingBookings(callback) {
+    try {
+      const bookingsRef = collection(db, 'bookings')
+      const q = query(
+        bookingsRef,
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
+      )
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const bookings = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        callback({ success: true, data: bookings })
+      }, (error) => {
+        console.error('Error in pending bookings subscription:', error)
+        callback({ success: false, error: error.message })
+      })
+
+      this.listeners.set('pendingBookings', unsubscribe)
+      return unsubscribe
+    } catch (error) {
+      console.error('Error setting up pending bookings subscription:', error)
+      callback({ success: false, error: error.message })
+    }
+  }
+
   // Create new booking
   async createBooking(bookingData, userId) {
     try {
