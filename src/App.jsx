@@ -18,6 +18,7 @@ import FirebasePermissionsDiagnostic from './components/FirebasePermissionsDiagn
 import FirebaseDataSeeder from './components/FirebaseDataSeeder'
 import FirebaseConnectionTest from './components/FirebaseConnectionTest'
 import QuickFirebaseSeeder from './components/QuickFirebaseSeeder'
+import AdminSetup from './components/AdminSetup'
 import ModernAuthModal from './components/ModernAuthModal'
 import BookingModal from './components/BookingModal'
 import ToastNotification from './components/ToastNotification'
