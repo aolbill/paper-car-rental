@@ -8,6 +8,8 @@ import AdminCarsManager from '../components/admin/AdminCarsManager'
 import AdminRequests from '../components/admin/AdminRequests'
 import AdminAnalytics from '../components/admin/AdminAnalytics'
 import AdminMessaging from '../components/admin/AdminMessaging'
+import AdminPayments from '../components/admin/AdminPayments'
+import AdminUsers from '../components/admin/AdminUsers'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
@@ -65,6 +67,8 @@ const AdminDashboard = () => {
     { id: 'analytics', label: 'Analytics', icon: '📊' },
     { id: 'bookings', label: 'Bookings', icon: '📋' },
     { id: 'cars', label: 'Cars', icon: '🚗' },
+    { id: 'payments', label: 'Payments', icon: '💳' },
+    { id: 'users', label: 'Users', icon: '👥' },
     { id: 'requests', label: 'Requests', icon: '📨' },
     { id: 'messaging', label: 'Messages', icon: '💬' }
   ]
@@ -139,9 +143,17 @@ const AdminDashboard = () => {
             )}
             
             {activeTab === 'cars' && (
-              <AdminCars onRefresh={handleRefresh} />
+              <AdminCarsManager onRefresh={handleRefresh} />
             )}
-            
+
+            {activeTab === 'payments' && (
+              <AdminPayments onRefresh={handleRefresh} />
+            )}
+
+            {activeTab === 'users' && (
+              <AdminUsers onRefresh={handleRefresh} />
+            )}
+
             {activeTab === 'requests' && (
               <AdminRequests onRefresh={handleRefresh} />
             )}
