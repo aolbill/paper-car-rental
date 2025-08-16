@@ -86,6 +86,10 @@ export const AuthProvider = ({ children }) => {
 
   // Register new user
   const register = async (email, password, userData) => {
+    if (!isFirebaseAvailable) {
+      return { success: false, error: 'Firebase not configured. Please set up Firebase credentials.' }
+    }
+
     setIsLoading(true)
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
