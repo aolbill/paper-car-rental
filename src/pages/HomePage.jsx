@@ -56,7 +56,7 @@ const HomePage = ({ onBookCar }) => {
         </div>
       </section>
 
-      <section className="destinations-section section">
+      <section className="destinations-section section paper-section-dark">
         <div className="container">
           <div className="section-header">
             <h2>Popular Destinations</h2>
