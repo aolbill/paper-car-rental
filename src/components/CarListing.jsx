@@ -39,9 +39,27 @@ const CarListing = ({ onBookCar }) => {
     ]
   }, [cars])
 
-  // Load cars from Firebase
+  // Load cars from Firebase with real-time updates
   useEffect(() => {
-    loadCars()
+    setLoading(true)
+
+    // Subscribe to real-time car updates
+    const unsubscribe = firebaseCarService.subscribeToAvailableCars((result) => {
+      if (result.success) {
+        setCars(result.data)
+      } else {
+        showError('Failed to load cars: ' + result.error)
+        setCars([])
+      }
+      setLoading(false)
+    })
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
   }, [])
 
   // Parse URL search parameters
@@ -62,19 +80,20 @@ const CarListing = ({ onBookCar }) => {
     }
   }, [searchParams])
 
-  const loadCars = async () => {
-    setLoading(true)
+  // Fallback method for manual refresh (if needed)
+  const refreshCars = async () => {
     try {
+      setLoading(true)
       const result = await firebaseCarService.getAvailableCars()
+
       if (result.success) {
         setCars(result.data)
       } else {
-        showError('Error', 'Failed to load cars')
-        setCars([])
+        showError('Failed to refresh cars: ' + result.error)
       }
     } catch (error) {
-      showError('Error', 'Failed to load cars')
-      setCars([])
+      console.error('Error refreshing cars:', error)
+      showError('Failed to refresh cars')
     } finally {
       setLoading(false)
     }
