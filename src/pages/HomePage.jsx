@@ -59,8 +59,8 @@ const HomePage = ({ onBookCar }) => {
       <section className="destinations-section section paper-section-dark">
         <div className="container">
           <div className="section-header">
-            <h2>Popular Destinations</h2>
-            <p>Explore Kenya's most beautiful places with our rental cars</p>
+            <h2>Signature Experiences</h2>
+            <p>Discover extraordinary destinations with Paper Car Rental's premium vehicle collection</p>
           </div>
           
           <div className="destinations-grid">
