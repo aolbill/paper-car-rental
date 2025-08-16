@@ -243,8 +243,17 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is admin
   const isAdmin = () => {
-    const adminEmails = ['admin@papercarrental.com', 'manager@papercarrental.com']
-    return user && adminEmails.includes(user.email)
+    if (!user || !userProfile) return false
+
+    const userForRBAC = {
+      id: user.uid,
+      email: user.email,
+      role: userProfile.role || rbacService.determineUserRole(user.email),
+      permissions: userProfile.permissions || [],
+      status: userProfile.status || 'active'
+    }
+
+    return rbacService.hasRoleLevel(userForRBAC, 'admin')
   }
 
   // Delete user account
