@@ -287,10 +287,27 @@
 
   .hero-stats {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .stat-item {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    font-size: 1.8rem;
   }
 
   .stat-item h4 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+  }
+
+  .stat-item p {
+    font-size: 0.85rem;
+  }
+
+  .stat-desc {
+    font-size: 0.7rem;
   }
 }
